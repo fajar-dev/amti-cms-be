@@ -79,21 +79,6 @@ export class TypeOrmUserRepository implements IUserRepository {
             .getOne()
     }
 
-    async findByResetToken(token: string): Promise<User | null> {
-        return await this.repository.createQueryBuilder("user")
-            .where("user.reset_password_token = :token", { token })
-            .andWhere("user.reset_password_expires > :now", { now: new Date() })
-            .getOne()
-    }
-
-    async findByEmailAndResetToken(email: string, token: string): Promise<User | null> {
-        return await this.repository.createQueryBuilder("user")
-            .where("user.email = :email", { email })
-            .andWhere("user.reset_password_token = :token", { token })
-            .andWhere("user.reset_password_expires > :now", { now: new Date() })
-            .getOne()
-    }
-
     async save(data: Partial<User>, manager?: EntityManager): Promise<User> {
         const repo = manager ? manager.getRepository(User) : this.repository
         return await repo.save(data)

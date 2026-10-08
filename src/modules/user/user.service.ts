@@ -37,14 +37,6 @@ export class UserService {
         return await this.repository.findByEmailWithPassword(email)
     }
 
-    async getByResetToken(token: string): Promise<User | null> {
-        return await this.repository.findByResetToken(token)
-    }
-
-    async getByEmailAndResetToken(email: string, token: string): Promise<User | null> {
-        return await this.repository.findByEmailAndResetToken(email, token)
-    }
-
     async save(data: Partial<User>, manager?: EntityManager): Promise<User> {
         return await this.repository.save(data, manager)
     }

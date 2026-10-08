@@ -2,6 +2,7 @@ import "reflect-metadata"
 import { DataSource } from "typeorm"
 import { User } from "../modules/user/entities/user.entity"
 import { Contact } from "../modules/contact/entities/contact.entity"
+import { PasswordResetToken } from "../modules/auth/entities/password-reset-token.entity"
 import { config } from "./config"
 
 /**
@@ -19,7 +20,7 @@ const defaultDataSource = new DataSource({
     password: config.database.pass,
     database: config.database.name,
     synchronize: config.database.sync,
-    entities: [User, Contact],
+    entities: [User, Contact, PasswordResetToken],
     migrations: [__dirname + "/../database/migrations/*{.ts,.js}"],
     subscribers: [],
 })

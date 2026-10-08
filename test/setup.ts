@@ -4,6 +4,7 @@ import { cors } from "hono/cors"
 import { DataSource } from "typeorm"
 import { User } from "../src/modules/user/entities/user.entity"
 import { Contact } from "../src/modules/contact/entities/contact.entity"
+import { PasswordResetToken } from "../src/modules/auth/entities/password-reset-token.entity"
 import { ApiResponse } from "../src/core/helpers/response"
 import { BaseException, ValidationException } from "../src/core/exceptions/base"
 import { ZodError } from "zod"
@@ -33,7 +34,7 @@ const TestDataSource = new DataSource({
     database: testDbName,
     synchronize: true,
     dropSchema: true,
-    entities: [User, Contact],
+    entities: [User, Contact, PasswordResetToken],
     logging: false,
 })
 

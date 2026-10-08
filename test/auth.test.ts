@@ -9,6 +9,8 @@ import {
     registerAndLogin,
 } from "./setup"
 import { createUserData, resetCounters } from "./helpers"
+import { AppDataSource } from "../src/config/database"
+import { PasswordResetToken } from "../src/modules/auth/entities/password-reset-token.entity"
 
 // ── Setup ───────────────────────────────────────────────────────────────────
 
@@ -358,6 +360,50 @@ describe("GET /api/auth/validate-reset-token", () => {
         expect(status).toBe(400)
         expect(body.success).toBe(false)
     })
+
+    test("should validate valid token successfully", async () => {
+        const userData = createUserData()
+        await request(app, "/api/auth/register", { method: "POST", body: userData })
+        await request(app, "/api/auth/forgot-password", { method: "POST", body: { email: userData.email } })
+
+        const tokenRepo = AppDataSource.getRepository(PasswordResetToken)
+        const tokenRecord = await tokenRepo.findOneBy({ email: userData.email })
+        expect(tokenRecord).not.toBeNull()
+
+        const { status, body } = await request(
+            app,
+            `/api/auth/validate-reset-token?email=${userData.email}&token=${tokenRecord!.token}`,
+            { method: "GET" }
+        )
+
+        expect(status).toBe(200)
+        expect(body.success).toBe(true)
+        expect(body.message).toBe("Token is valid")
+    })
+
+    test("should fail for expired token", async () => {
+        const userData = createUserData()
+        await request(app, "/api/auth/register", { method: "POST", body: userData })
+        await request(app, "/api/auth/forgot-password", { method: "POST", body: { email: userData.email } })
+
+        const tokenRepo = AppDataSource.getRepository(PasswordResetToken)
+        const tokenRecord = await tokenRepo.findOneBy({ email: userData.email })
+        expect(tokenRecord).not.toBeNull()
+
+        // Set token to expired
+        tokenRecord!.expiresAt = new Date(Date.now() - 1000)
+        await tokenRepo.save(tokenRecord!)
+
+        const { status, body } = await request(
+            app,
+            `/api/auth/validate-reset-token?email=${userData.email}&token=${tokenRecord!.token}`,
+            { method: "GET" }
+        )
+
+        expect(status).toBe(400)
+        expect(body.success).toBe(false)
+        expect(body.message).toBe("Invalid or expired reset token")
+    })
 })
 
 // ═══════════════════════════════════════════════════════════════════════════
@@ -393,6 +439,105 @@ describe("POST /api/auth/reset-password", () => {
 
         expect(status).toBe(422)
         expect(body.success).toBe(false)
+    })
+
+    test("should reset password successfully and allow login with new password", async () => {
+        const userData = createUserData()
+        await request(app, "/api/auth/register", { method: "POST", body: userData })
+        await request(app, "/api/auth/forgot-password", { method: "POST", body: { email: userData.email } })
+
+        const tokenRepo = AppDataSource.getRepository(PasswordResetToken)
+        const tokenRecord = await tokenRepo.findOneBy({ email: userData.email })
+        expect(tokenRecord).not.toBeNull()
+
+        const newPassword = "newpassword456"
+        const { status, body } = await request(app, "/api/auth/reset-password", {
+            method: "POST",
+            body: { token: tokenRecord!.token, newPassword },
+        })
+
+        expect(status).toBe(200)
+        expect(body.success).toBe(true)
+        expect(body.message).toBe("Password has been successfully reset")
+
+        // Old password should fail
+        const oldLoginRes = await request(app, "/api/auth/login", {
+            method: "POST",
+            body: { email: userData.email, password: userData.password },
+        })
+        expect(oldLoginRes.status).toBe(401)
+
+        // New password should succeed
+        const newLoginRes = await request(app, "/api/auth/login", {
+            method: "POST",
+            body: { email: userData.email, password: newPassword },
+        })
+        expect(newLoginRes.status).toBe(200)
+        expect(newLoginRes.body.data.accessToken).toBeDefined()
+    })
+
+    test("should support multi-token and delete all tokens for email once one token is used", async () => {
+        const userData = createUserData()
+        await request(app, "/api/auth/register", { method: "POST", body: userData })
+
+        // Request reset multiple times (multi-token support)
+        await request(app, "/api/auth/forgot-password", { method: "POST", body: { email: userData.email } })
+        await request(app, "/api/auth/forgot-password", { method: "POST", body: { email: userData.email } })
+        await request(app, "/api/auth/forgot-password", { method: "POST", body: { email: userData.email } })
+
+        const tokenRepo = AppDataSource.getRepository(PasswordResetToken)
+        const tokens = await tokenRepo.findBy({ email: userData.email })
+
+        // Verify multiple tokens exist
+        expect(tokens.length).toBe(3)
+        const tokenValues = new Set(tokens.map(t => t.token))
+        expect(tokenValues.size).toBe(3) // All tokens are unique
+
+        // Verify all 3 tokens are valid
+        for (const t of tokens) {
+            const valRes = await request(
+                app,
+                `/api/auth/validate-reset-token?email=${userData.email}&token=${t.token}`,
+                { method: "GET" }
+            )
+            expect(valRes.status).toBe(200)
+        }
+
+        // Reset password using the second token
+        const usedToken = tokens[1].token
+        const resetRes = await request(app, "/api/auth/reset-password", {
+            method: "POST",
+            body: { token: usedToken, newPassword: "multiTokenPassword123" },
+        })
+        expect(resetRes.status).toBe(200)
+        expect(resetRes.body.success).toBe(true)
+
+        // Verify ALL tokens for this email have been deleted from password_reset_tokens
+        const remainingTokens = await tokenRepo.findBy({ email: userData.email })
+        expect(remainingTokens.length).toBe(0)
+
+        // Attempting to use any of the other tokens should fail
+        const reuseRes1 = await request(app, "/api/auth/reset-password", {
+            method: "POST",
+            body: { token: tokens[0].token, newPassword: "anotherPassword123" },
+        })
+        expect(reuseRes1.status).toBe(400)
+        expect(reuseRes1.body.message).toBe("Invalid or expired reset token")
+
+        const reuseRes2 = await request(app, "/api/auth/reset-password", {
+            method: "POST",
+            body: { token: tokens[2].token, newPassword: "anotherPassword123" },
+        })
+        expect(reuseRes2.status).toBe(400)
+        expect(reuseRes2.body.message).toBe("Invalid or expired reset token")
+
+        // Even the used token cannot be reused
+        const reuseResUsed = await request(app, "/api/auth/reset-password", {
+            method: "POST",
+            body: { token: usedToken, newPassword: "anotherPassword123" },
+        })
+        expect(reuseResUsed.status).toBe(400)
+        expect(reuseResUsed.body.message).toBe("Invalid or expired reset token")
     })
 })
 

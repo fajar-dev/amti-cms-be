@@ -17,12 +17,6 @@ export class User {
     @Column({ select: false, nullable: true })
     password?: string
 
-    @Column({ name: "reset_password_token", nullable: true })
-    resetPasswordToken?: string
-
-    @Column({ name: "reset_password_expires", type: "timestamp", nullable: true })
-    resetPasswordExpires?: Date
-
     @Column({ name: "is_active", default: true })
     isActive!: boolean
 

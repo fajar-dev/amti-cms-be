@@ -13,14 +13,17 @@ import { verify } from "hono/jwt"
 import { config } from "../../config/config"
 import crypto from "crypto"
 import { mail } from "../../core/helpers/mail"
+import { renderForgotPasswordEmail } from "../../core/templates/email"
 import { UserService } from "../user/user.service"
 import { AuthHelper } from "../../core/helpers/auth"
 import { minio } from "../../core/helpers/minio"
 import { logger } from "../../core/helpers/logger"
+import { IPasswordResetTokenRepository } from "./interfaces/password-reset-token.repository.interface"
 
 export class AuthService {
     constructor(
         private readonly userService: UserService,
+        private readonly passwordResetTokenRepository: IPasswordResetTokenRepository,
     ) {}
 
     async register(data: RegisterValidator) {
@@ -102,33 +105,43 @@ export class AuthService {
         }
 
         const resetToken = crypto.randomBytes(32).toString("hex")
-        user.resetPasswordToken = resetToken
-        user.resetPasswordExpires = new Date(Date.now() + 36000000)
+        const expiresAt = new Date(Date.now() + 36000000) // 10 hours
 
-        await this.userService.save(user)
+        await this.passwordResetTokenRepository.createToken(user.email, resetToken, expiresAt)
+
         const resetLink = `${config.app.appUrl}/auth/reset-password?email=${user.email}&token=${resetToken}`
-        const text = `Halo ${user.name},\n\nKami menerima permintaan untuk mengatur ulang kata sandi akun Anda.\n\nSilakan klik tautan berikut untuk mengatur ulang kata sandi:\n${resetLink}\n\nTautan ini akan kedaluwarsa dalam 10 jam.\n\nJika Anda tidak meminta pengaturan ulang kata sandi, abaikan email ini.\n\nTerima kasih.`
-        mail.sendText(user.email, "Atur Ulang Kata Sandi", text).catch(err => logger.error('Failed to send forgot-password email', { email: user.email, err }))
+        const { html, text } = renderForgotPasswordEmail({
+            name: user.name,
+            resetLink,
+            expiresInHours: 10,
+        })
+        mail.sendHtml(user.email, "Reset Password", html, text).catch(err => logger.error('Failed to send forgot-password email', { email: user.email, err }))
         return true
     }
 
     async resetPassword(data: ResetPasswordValidator) {
-        const user = await this.userService.getByResetToken(data.token)
-        if (!user) {
+        const tokenRecord = await this.passwordResetTokenRepository.findValidByToken(data.token)
+        if (!tokenRecord) {
             throw new BadRequestException("Invalid or expired reset token")
         }
 
-        user.password = await hashPassword(data.newPassword)
-        user.resetPasswordToken = null as any
-        user.resetPasswordExpires = null as any
+        const user = await this.userService.getByEmailWithPassword(tokenRecord.email)
+        if (!user) {
+            throw new BadRequestException("User not found")
+        }
 
+        user.password = await hashPassword(data.newPassword)
         await this.userService.save(user)
+
+        // Hapus semua token reset password untuk email ini setelah berhasil di-reset
+        await this.passwordResetTokenRepository.deleteByEmail(tokenRecord.email)
+
         return true
     }
 
     async validateResetToken(email: string, token: string) {
-        const user = await this.userService.getByEmailAndResetToken(email, token)
-        if (!user) {
+        const tokenRecord = await this.passwordResetTokenRepository.findValidByEmailAndToken(email, token)
+        if (!tokenRecord) {
             throw new BadRequestException("Invalid or expired reset token")
         }
         return true

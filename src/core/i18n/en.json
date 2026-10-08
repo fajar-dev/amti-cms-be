@@ -55,6 +55,24 @@
         "Contacts retrieved successfully": "Contacts retrieved successfully",
         "Contact not found": "Contact not found"
     },
+    "content": {
+        "Category created successfully": "Category created successfully",
+        "Category updated successfully": "Category updated successfully",
+        "Category deleted successfully": "Category deleted successfully",
+        "Category retrieved successfully": "Category retrieved successfully",
+        "Categories retrieved successfully": "Categories retrieved successfully",
+        "Category not found": "Category not found",
+        "Category slug already in use": "Category slug already in use",
+        "Invalid category name or slug": "Invalid category name or slug",
+        "Article created successfully": "Article created successfully",
+        "Article updated successfully": "Article updated successfully",
+        "Article deleted successfully": "Article deleted successfully",
+        "Article retrieved successfully": "Article retrieved successfully",
+        "Articles retrieved successfully": "Articles retrieved successfully",
+        "Article not found": "Article not found",
+        "View recorded successfully": "View recorded successfully",
+        "Views retrieved successfully": "Views retrieved successfully"
+    },
     "validation": {
         "Name is required": "Name is required",
         "Invalid email format": "Invalid email format",
@@ -63,6 +81,9 @@
         "Password must be at least 6 characters": "Password must be at least 6 characters",
         "Reset token is required": "Reset token is required",
         "Refresh token is required": "Refresh token is required",
-        "Code is required": "Code is required"
+        "Code is required": "Code is required",
+        "Title is required": "Title is required",
+        "Title is too long": "Title is too long",
+        "Content is required": "Content is required"
     }
 }

@@ -59,6 +59,25 @@
         "Contact not found": "Kontak tidak ditemukan"
     },
 
+    "content": {
+        "Category created successfully": "Kategori berhasil dibuat",
+        "Category updated successfully": "Kategori berhasil diperbarui",
+        "Category deleted successfully": "Kategori berhasil dihapus",
+        "Category retrieved successfully": "Data kategori berhasil diambil",
+        "Categories retrieved successfully": "Daftar kategori berhasil diambil",
+        "Category not found": "Kategori tidak ditemukan",
+        "Category slug already in use": "Slug kategori sudah digunakan",
+        "Invalid category name or slug": "Nama atau slug kategori tidak valid",
+        "Article created successfully": "Artikel berhasil dibuat",
+        "Article updated successfully": "Artikel berhasil diperbarui",
+        "Article deleted successfully": "Artikel berhasil dihapus",
+        "Article retrieved successfully": "Data artikel berhasil diambil",
+        "Articles retrieved successfully": "Daftar artikel berhasil diambil",
+        "Article not found": "Artikel tidak ditemukan",
+        "View recorded successfully": "Kunjungan berhasil dicatat",
+        "Views retrieved successfully": "Daftar kunjungan berhasil diambil"
+    },
+
     "validation": {
         "Name is required": "Nama wajib diisi",
         "Invalid email format": "Format email tidak valid",
@@ -67,6 +86,9 @@
         "Password must be at least 6 characters": "Kata sandi minimal 6 karakter",
         "Reset token is required": "Token reset wajib diisi",
         "Refresh token is required": "Refresh token wajib diisi",
-        "Code is required": "Kode wajib diisi"
+        "Code is required": "Kode wajib diisi",
+        "Title is required": "Judul wajib diisi",
+        "Title is too long": "Judul terlalu panjang",
+        "Content is required": "Konten wajib diisi"
     }
 }

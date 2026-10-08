@@ -4,6 +4,7 @@ import { ArticleSerializer } from "../serializers/article.serialize"
 import { ArticleViewSerializer } from "../serializers/article-view.serialize"
 import { ApiResponse } from "../../../core/helpers/response"
 import { ArticleStatus } from "../enum/article-status.enum"
+import { RecordViewValidator } from "../validators/article.validator"
 
 export class ArticleController {
     constructor(private readonly service: ArticleService) {}
@@ -67,7 +68,9 @@ export class ArticleController {
 
     async recordView(c: Context) {
         const id = Number(c.req.param("id"))
-        const body = (await c.req.json().catch(() => ({}))) as { referrer?: string }
+        const rawBody = await c.req.json().catch(() => ({}))
+        const parsed = RecordViewValidator.safeParse(rawBody)
+        const body = parsed.success ? parsed.data : {}
         const ipAddress = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || c.req.header("cf-connecting-ip") || null
         const userAgent = c.req.header("user-agent") || null
         const referrer = body.referrer || c.req.header("referer") || null

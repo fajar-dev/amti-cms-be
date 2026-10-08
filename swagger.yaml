@@ -19,6 +19,10 @@ tags:
     description: Contact CRUD
   - name: User
     description: User CRUD (admin/management)
+  - name: Content - Categories
+    description: Content category management
+  - name: Content - Articles
+    description: Articles authoring, publishing, SEO, and metrics tracking
   - name: Upload
     description: File upload & retrieval via MinIO object storage
 
@@ -253,6 +257,125 @@ components:
         password: { type: string, minLength: 6, example: "newSecret123" }
         photo: { type: string, nullable: true, example: "users/abc-123.png" }
         isActive: { type: boolean, example: true }
+
+    # --- Content Schemas ---
+    ArticleStatus:
+      type: string
+      enum: [draft, publish]
+      default: draft
+      example: draft
+
+    Category:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: "Technology" }
+        slug: { type: string, example: "technology" }
+        description: { type: string, nullable: true, example: "Articles about technology" }
+        createdAt: { type: string, format: date-time, example: "2026-10-08T08:00:00.000Z" }
+        updatedAt: { type: string, format: date-time, example: "2026-10-08T08:00:00.000Z" }
+
+    CreateCategoryRequest:
+      type: object
+      required: [name]
+      properties:
+        name: { type: string, example: "Technology" }
+        slug: { type: string, example: "technology" }
+        description: { type: string, nullable: true, example: "Articles about technology" }
+
+    UpdateCategoryRequest:
+      type: object
+      properties:
+        name: { type: string, example: "Technology" }
+        slug: { type: string, example: "technology" }
+        description: { type: string, nullable: true, example: "Articles about technology" }
+
+    Article:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        categoryId: { type: integer, nullable: true, example: 1 }
+        category: { allOf: [{ $ref: "#/components/schemas/Category" }], nullable: true }
+        title: { type: string, example: "Getting Started with Nuxt 4" }
+        slug: { type: string, example: "getting-started-with-nuxt-4" }
+        cover: { type: string, nullable: true, example: "users/cover.jpg" }
+        coverUrl: { type: string, nullable: true, example: "http://localhost:9000/amti-cms/users/cover.jpg" }
+        content: { type: string, example: "<p>Article content here</p>" }
+        tags:
+          type: array
+          items: { type: string }
+          example: ["nuxt", "vue"]
+        status: { $ref: "#/components/schemas/ArticleStatus" }
+        metaTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
+        metaDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
+        metaKeywords: { type: string, nullable: true, example: "nuxt, vue, web" }
+        canonicalUrl: { type: string, nullable: true, example: "https://example.com/articles/nuxt-4" }
+        ogTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
+        ogDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
+        ogImage: { type: string, nullable: true, example: "https://example.com/og.jpg" }
+        viewsCount: { type: integer, example: 120 }
+        publishedAt: { type: string, format: date-time, nullable: true, example: "2026-10-08T08:00:00.000Z" }
+        createdAt: { type: string, format: date-time, example: "2026-10-08T08:00:00.000Z" }
+        updatedAt: { type: string, format: date-time, example: "2026-10-08T08:00:00.000Z" }
+
+    CreateArticleRequest:
+      type: object
+      required: [title, content]
+      properties:
+        title: { type: string, example: "Getting Started with Nuxt 4" }
+        slug: { type: string, example: "getting-started-with-nuxt-4" }
+        categoryId: { type: integer, nullable: true, example: 1 }
+        cover: { type: string, nullable: true, example: "users/cover.jpg" }
+        content: { type: string, example: "<p>Article content here</p>" }
+        tags:
+          type: array
+          items: { type: string }
+          example: ["nuxt", "vue"]
+        status: { $ref: "#/components/schemas/ArticleStatus" }
+        metaTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
+        metaDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
+        metaKeywords: { type: string, nullable: true, example: "nuxt, vue, web" }
+        canonicalUrl: { type: string, nullable: true, example: "https://example.com/articles/nuxt-4" }
+        ogTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
+        ogDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
+        ogImage: { type: string, nullable: true, example: "https://example.com/og.jpg" }
+
+    UpdateArticleRequest:
+      type: object
+      properties:
+        title: { type: string, example: "Getting Started with Nuxt 4" }
+        slug: { type: string, example: "getting-started-with-nuxt-4" }
+        categoryId: { type: integer, nullable: true, example: 1 }
+        cover: { type: string, nullable: true, example: "users/cover.jpg" }
+        content: { type: string, example: "<p>Article content here</p>" }
+        tags:
+          type: array
+          items: { type: string }
+          example: ["nuxt", "vue"]
+        status: { $ref: "#/components/schemas/ArticleStatus" }
+        metaTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
+        metaDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
+        metaKeywords: { type: string, nullable: true, example: "nuxt, vue, web" }
+        canonicalUrl: { type: string, nullable: true, example: "https://example.com/articles/nuxt-4" }
+        ogTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
+        ogDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
+        ogImage: { type: string, nullable: true, example: "https://example.com/og.jpg" }
+
+    ArticleView:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        articleId: { type: integer, example: 1 }
+        ipAddress: { type: string, nullable: true, example: "192.168.1.1" }
+        userAgent: { type: string, nullable: true, example: "Mozilla/5.0" }
+        referrer: { type: string, nullable: true, example: "https://google.com" }
+        userId: { type: integer, nullable: true, example: 1 }
+        viewedAt: { type: string, format: date-time, example: "2026-10-08T08:00:00.000Z" }
+
+    RecordViewRequest:
+      type: object
+      properties:
+        referrer: { type: string, nullable: true, example: "https://google.com" }
 
 paths:
   # ── Register ──────────────────────────────────────────────────────────────
@@ -958,6 +1081,503 @@ paths:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
         "404":
           description: User not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  # ── Content Categories ───────────────────────────────────────────────────
+  /content/categories:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [Content - Categories]
+      summary: Get all content categories (paginated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+        - name: q
+          in: query
+          description: Search by name or description
+          schema: { type: string }
+        - name: sortBy
+          in: query
+          description: Column to sort by
+          schema: { type: string, enum: [name, createdAt] }
+        - name: order
+          in: query
+          schema: { type: string, enum: [ASC, DESC], default: DESC }
+      responses:
+        "200":
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Category" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    post:
+      tags: [Content - Categories]
+      summary: Create a new category
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateCategoryRequest" }
+      responses:
+        "201":
+          description: Category created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Category" }
+        "400":
+          description: Category slug already in use or invalid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+
+  /content/categories/all:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [Content - Categories]
+      summary: Get all categories as an unpaginated list (for dropdowns)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Categories retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Category" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /content/categories/{id}:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Content - Categories]
+      summary: Get category by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Category retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Category" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Category not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    put:
+      tags: [Content - Categories]
+      summary: Update category by ID
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateCategoryRequest" }
+      responses:
+        "200":
+          description: Category updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Category" }
+        "400":
+          description: Category slug already in use or invalid
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Category not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+
+    delete:
+      tags: [Content - Categories]
+      summary: Delete category by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Category deleted successfully
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BaseResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Category not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  # ── Content Articles ─────────────────────────────────────────────────────
+  /content/articles:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [Content - Articles]
+      summary: Get all articles (paginated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+        - name: q
+          in: query
+          description: Search by title or content
+          schema: { type: string }
+        - name: categoryId
+          in: query
+          schema: { type: integer }
+        - name: status
+          in: query
+          schema: { $ref: "#/components/schemas/ArticleStatus" }
+        - name: sortBy
+          in: query
+          description: Column to sort by
+          schema: { type: string, enum: [title, status, viewsCount, createdAt, publishedAt] }
+        - name: order
+          in: query
+          schema: { type: string, enum: [ASC, DESC], default: DESC }
+      responses:
+        "200":
+          description: Articles retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Article" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    post:
+      tags: [Content - Articles]
+      summary: Create a new article
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateArticleRequest" }
+      responses:
+        "201":
+          description: Article created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Article" }
+        "400":
+          description: Category not found or invalid input
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+
+  /content/articles/slug/{slug}:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: slug
+        in: path
+        required: true
+        description: Unique article URL slug
+        schema: { type: string }
+    get:
+      tags: [Content - Articles]
+      summary: Get article by slug (Public endpoint)
+      responses:
+        "200":
+          description: Article retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Article" }
+        "404":
+          description: Article not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /content/articles/{id}:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Content - Articles]
+      summary: Get article by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Article retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Article" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Article not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    put:
+      tags: [Content - Articles]
+      summary: Update article by ID
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateArticleRequest" }
+      responses:
+        "200":
+          description: Article updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Article" }
+        "400":
+          description: Category not found or invalid input
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Article not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+
+    delete:
+      tags: [Content - Articles]
+      summary: Delete article by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Article deleted successfully
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BaseResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Article not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /content/articles/{id}/view:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    post:
+      tags: [Content - Articles]
+      summary: Record an article view metric (Public endpoint)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/RecordViewRequest" }
+      responses:
+        "200":
+          description: View recorded successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/ArticleView" }
+        "404":
+          description: Article not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /content/articles/{id}/views:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Content - Articles]
+      summary: Get recent views history for an article
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: limit
+          in: query
+          schema: { type: integer, default: 50 }
+      responses:
+        "200":
+          description: Views retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/ArticleView" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Article not found
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }

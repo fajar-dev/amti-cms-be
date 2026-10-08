@@ -30,6 +30,34 @@ export function createContactData(overrides: Record<string, any> = {}) {
     }
 }
 
+// ── Category Test Data ───────────────────────────────────────────────────────
+
+let categoryCounter = 0
+
+export function createCategoryData(overrides: Record<string, any> = {}) {
+    categoryCounter++
+    return {
+        name: `Category ${categoryCounter}`,
+        slug: `category-${categoryCounter}`,
+        description: `Description for category ${categoryCounter}`,
+        ...overrides,
+    }
+}
+
+// ── Article Test Data ────────────────────────────────────────────────────────
+
+let articleCounter = 0
+
+export function createArticleData(overrides: Record<string, any> = {}) {
+    articleCounter++
+    return {
+        title: `Test Article ${articleCounter}`,
+        content: `<p>Content for test article ${articleCounter}</p>`,
+        status: "draft",
+        ...overrides,
+    }
+}
+
 // ── Response Assertions ─────────────────────────────────────────────────────
 
 export function expectSuccess(body: any, statusCode: number = 200) {
@@ -67,4 +95,6 @@ export function expectPagination(body: any) {
 export function resetCounters() {
     userCounter = 0
     contactCounter = 0
+    categoryCounter = 0
+    articleCounter = 0
 }

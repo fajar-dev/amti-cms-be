@@ -9,6 +9,21 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased] — 2026-10-08
 
 ### Added
+- Modul Konten (`content`) yang mencakup manajemen Kategori (`Category`), Artikel (`Article`), dan Metrik Pembaca (`ArticleView`).
+- Entitas TypeORM di `src/modules/content/entities/`: `Category`, `Article`, dan `ArticleView`.
+- Enum `ArticleStatus` (`draft`, `publish`) di `src/modules/content/enum/article-status.enum.ts`.
+- Repositori dan interface di `src/modules/content/repositories/` dan `interfaces/` untuk Article, Category, dan ArticleView.
+- Service `CategoryService` dan `ArticleService` dengan fitur auto-slug generation, pencegahan slug duplikat, tags JSON, SEO meta fields (canonical URL, OpenGraph), dan integrasi cover MinIO.
+- Controller `CategoryController` dan `ArticleController` dengan endpoint CRUD, unpaginated category list, public slug lookup, public view tracker (`recordView`), dan audit riwayat kunjungan (`views`).
+- Serializer `CategorySerializer`, `ArticleSerializer` (dengan resolusi cover presigned URL), dan `ArticleViewSerializer`.
+- Validator Zod di `src/modules/content/validators/`: `CreateCategoryValidator`, `UpdateCategoryValidator`, `CreateArticleValidator`, `UpdateArticleValidator`, dan `RecordViewValidator`.
+- Composition root wiring di `src/modules/content/content.module.ts`.
+- Migrasi database `1791364316004-CreateContentTables.ts` yang kompatibel dengan PostgreSQL dan MySQL.
+- Rute API terdaftar di `src/routes/api.ts` di bawah `/content/categories` dan `/content/articles`.
+- Data factory `createCategoryData` dan `createArticleData` di `test/helpers.ts`.
+- Suite E2E test komprehensif di `test/content.test.ts` (kategori, artikel, slug, SEO, views tracking).
+- Spesifikasi OpenAPI Swagger lengkap di `swagger.yaml` untuk seluruh skema dan endpoint konten.
+- Terjemahan pesan i18n untuk konten di `src/core/i18n/en.json` dan `src/core/i18n/id.json`.
 - Entitas `PasswordResetToken` di `src/modules/auth/entities/password-reset-token.entity.ts` untuk tabel `password_reset_tokens`.
 - Interface `IPasswordResetTokenRepository` di `src/modules/auth/interfaces/password-reset-token.repository.interface.ts` dan implementasi TypeORM di `src/modules/auth/repositories/password-reset-token.repository.ts`.
 - Migrasi database `1791364316003-CreatePasswordResetTokensTable.ts` untuk PostgreSQL dan MySQL dengan index pada kolom `email` dan `token`.

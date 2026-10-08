@@ -6,6 +6,8 @@ import crypto from "crypto"
 import { RegisterValidator, LoginValidator, ForgotPasswordValidator, ResetPasswordValidator, RefreshTokenValidator, GoogleLoginValidator, UpdateProfileValidator, UpdatePasswordValidator } from "../modules/auth/validators/auth.validator"
 import { CreateContactValidator, UpdateContactValidator } from "../modules/contact/validators/contact.validator"
 import { CreateUserValidator, UpdateUserValidator } from "../modules/user/validators/user.validator"
+import { CreateCategoryValidator, UpdateCategoryValidator } from "../modules/content/validators/category.validator"
+import { CreateArticleValidator, UpdateArticleValidator, RecordViewValidator } from "../modules/content/validators/article.validator"
 
 // ── Middlewares ──────────────────────────────────────────────────────────────
 import { authMiddleware } from "../core/middlewares/auth.middleware"
@@ -16,6 +18,7 @@ import { BadRequestException } from "../core/exceptions/base"
 import { authController } from "../modules/auth/auth.module"
 import { contactController } from "../modules/contact/contact.module"
 import { userController } from "../modules/user/user.module"
+import { categoryController, articleController } from "../modules/content/content.module"
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 const routes = new Hono()
@@ -47,6 +50,24 @@ routes.get("/user/:id", authMiddleware, (c) => userController.show(c))
 routes.post("/user", authMiddleware, zValidator("json", CreateUserValidator, validationHook), (c) => userController.store(c))
 routes.put("/user/:id", authMiddleware, zValidator("json", UpdateUserValidator, validationHook), (c) => userController.update(c))
 routes.delete("/user/:id", authMiddleware, (c) => userController.destroy(c))
+
+// Content - Categories
+routes.get("/content/categories", authMiddleware, (c) => categoryController.index(c))
+routes.get("/content/categories/all", authMiddleware, (c) => categoryController.list(c))
+routes.get("/content/categories/:id", authMiddleware, (c) => categoryController.show(c))
+routes.post("/content/categories", authMiddleware, zValidator("json", CreateCategoryValidator, validationHook), (c) => categoryController.store(c))
+routes.put("/content/categories/:id", authMiddleware, zValidator("json", UpdateCategoryValidator, validationHook), (c) => categoryController.update(c))
+routes.delete("/content/categories/:id", authMiddleware, (c) => categoryController.destroy(c))
+
+// Content - Articles
+routes.get("/content/articles", authMiddleware, (c) => articleController.index(c))
+routes.get("/content/articles/:id", authMiddleware, (c) => articleController.show(c))
+routes.get("/content/articles/slug/:slug", (c) => articleController.showBySlug(c))
+routes.post("/content/articles", authMiddleware, zValidator("json", CreateArticleValidator, validationHook), (c) => articleController.store(c))
+routes.put("/content/articles/:id", authMiddleware, zValidator("json", UpdateArticleValidator, validationHook), (c) => articleController.update(c))
+routes.delete("/content/articles/:id", authMiddleware, (c) => articleController.destroy(c))
+routes.post("/content/articles/:id/view", (c) => articleController.recordView(c))
+routes.get("/content/articles/:id/views", authMiddleware, (c) => articleController.views(c))
 
 // Upload
 routes.post("/upload", authMiddleware, async (c) => {

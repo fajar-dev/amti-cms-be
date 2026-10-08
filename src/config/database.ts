@@ -3,6 +3,9 @@ import { DataSource } from "typeorm"
 import { User } from "../modules/user/entities/user.entity"
 import { Contact } from "../modules/contact/entities/contact.entity"
 import { PasswordResetToken } from "../modules/auth/entities/password-reset-token.entity"
+import { Category } from "../modules/content/entities/category.entity"
+import { Article } from "../modules/content/entities/article.entity"
+import { ArticleView } from "../modules/content/entities/article-view.entity"
 import { config } from "./config"
 
 /**
@@ -20,7 +23,7 @@ const defaultDataSource = new DataSource({
     password: config.database.pass,
     database: config.database.name,
     synchronize: config.database.sync,
-    entities: [User, Contact, PasswordResetToken],
+    entities: [User, Contact, PasswordResetToken, Category, Article, ArticleView],
     migrations: [__dirname + "/../database/migrations/*{.ts,.js}"],
     subscribers: [],
 })

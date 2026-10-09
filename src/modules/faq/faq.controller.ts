@@ -10,7 +10,6 @@ export class FaqController {
         const page = Number(c.req.query("page") || 1)
         const limit = Number(c.req.query("limit") || 10)
         const q = c.req.query("q") || ""
-        const category = c.req.query("category") || undefined
         const isActiveQuery = c.req.query("isActive")
         const isActive = isActiveQuery !== undefined ? isActiveQuery === "true" || isActiveQuery === "1" : undefined
         const sortBy = c.req.query("sortBy") || undefined
@@ -20,7 +19,7 @@ export class FaqController {
             page,
             limit,
             q,
-            { category, isActive },
+            { isActive },
             sortBy,
             order
         )

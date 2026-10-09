@@ -60,7 +60,6 @@ describe("FAQ - CRUD API", () => {
             body: {
                 question: "How do I reset my password?",
                 answer: "Click forgot password on login screen.",
-                category: "Account",
                 order: 1,
                 isActive: true,
             },
@@ -71,7 +70,6 @@ describe("FAQ - CRUD API", () => {
         expect(body.data.id).toBeDefined()
         expect(body.data.question).toBe("How do I reset my password?")
         expect(body.data.answer).toBe("Click forgot password on login screen.")
-        expect(body.data.category).toBe("Account")
         expect(body.data.order).toBe(1)
         expect(body.data.isActive).toBe(true)
     })
@@ -102,16 +100,16 @@ describe("FAQ - CRUD API", () => {
         expect(body.success).toBe(false)
     })
 
-    test("should retrieve paginated FAQs and filter by category", async () => {
+    test("should retrieve paginated FAQs and filter by isActive", async () => {
         await request(app, "/api/faq", {
             method: "POST",
             headers: authHeaders,
-            body: { question: "Billing FAQ 1", answer: "Answer 1", category: "Billing" },
+            body: { question: "Active FAQ 1", answer: "Answer 1", isActive: true },
         })
         await request(app, "/api/faq", {
             method: "POST",
             headers: authHeaders,
-            body: { question: "General FAQ 2", answer: "Answer 2", category: "General" },
+            body: { question: "Inactive FAQ 2", answer: "Answer 2", isActive: false },
         })
 
         // All FAQs
@@ -123,14 +121,14 @@ describe("FAQ - CRUD API", () => {
         expect(allRes.body.data.length).toBe(2)
         expect(allRes.body.meta.total).toBe(2)
 
-        // Filter by Billing
-        const billingRes = await request(app, "/api/faq?category=Billing", {
+        // Filter by isActive
+        const activeRes = await request(app, "/api/faq?isActive=true", {
             method: "GET",
             headers: authHeaders,
         })
-        expect(billingRes.status).toBe(200)
-        expect(billingRes.body.data.length).toBe(1)
-        expect(billingRes.body.data[0].category).toBe("Billing")
+        expect(activeRes.status).toBe(200)
+        expect(activeRes.body.data.length).toBe(1)
+        expect(activeRes.body.data[0].isActive).toBe(true)
     })
 
     test("should retrieve FAQ by ID", async () => {

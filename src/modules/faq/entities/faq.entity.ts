@@ -17,9 +17,6 @@ export class Faq {
     @Column({ type: "text" })
     answer!: string
 
-    @Column({ length: 100, nullable: true })
-    category?: string | null
-
     @Column({ type: "int", default: 0 })
     order!: number
 

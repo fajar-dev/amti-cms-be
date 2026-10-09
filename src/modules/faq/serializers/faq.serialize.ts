@@ -6,7 +6,6 @@ export class FaqSerializer {
             id: faq.id,
             question: faq.question,
             answer: faq.answer,
-            category: faq.category || null,
             order: Number(faq.order ?? 0),
             isActive: Boolean(faq.isActive),
             createdAt: faq.createdAt,

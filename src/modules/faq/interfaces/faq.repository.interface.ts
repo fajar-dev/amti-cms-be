@@ -2,7 +2,6 @@ import { Faq } from "../entities/faq.entity"
 import { IBaseRepository, SortOrder } from "../../../core/interfaces/base.repository.interface"
 
 export interface FaqListFilters {
-    category?: string
     isActive?: boolean
 }
 

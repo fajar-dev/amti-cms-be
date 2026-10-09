@@ -371,7 +371,6 @@ components:
         id: { type: integer, example: 1 }
         question: { type: string, example: "How do I reset my password?" }
         answer: { type: string, example: "Click on forgot password link on the login screen." }
-        category: { type: string, nullable: true, example: "Account" }
         order: { type: integer, example: 1 }
         isActive: { type: boolean, example: true }
         createdAt: { type: string, format: date-time, example: "2026-10-09T08:00:00.000Z" }
@@ -383,7 +382,6 @@ components:
       properties:
         question: { type: string, example: "How do I reset my password?" }
         answer: { type: string, example: "Click on forgot password link on the login screen." }
-        category: { type: string, nullable: true, example: "Account" }
         order: { type: integer, example: 1 }
         isActive: { type: boolean, example: true }
 
@@ -392,7 +390,6 @@ components:
       properties:
         question: { type: string, example: "How do I reset my password?" }
         answer: { type: string, example: "Click on forgot password link on the login screen." }
-        category: { type: string, nullable: true, example: "Account" }
         order: { type: integer, example: 1 }
         isActive: { type: boolean, example: true }
 
@@ -1654,10 +1651,6 @@ paths:
         - name: q
           in: query
           description: Search by question or answer
-          schema: { type: string }
-        - name: category
-          in: query
-          description: Filter by category
           schema: { type: string }
         - name: isActive
           in: query

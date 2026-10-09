@@ -10,15 +10,15 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ### Added
 - Modul FAQ (`faq`) yang mencakup CRUD lengkap untuk pengelolaan Tanya Jawab (Frequently Asked Questions).
-- Entitas TypeORM di `src/modules/faq/entities/faq.entity.ts`: `Faq` dengan kolom `question`, `answer`, `category`, `order`, `isActive`, `createdAt`, dan `updatedAt`.
-- Repositori dan interface di `src/modules/faq/repositories/` dan `interfaces/` untuk FAQ dengan pencarian (`q`), filter kategori dan status aktif, serta sorting dinamis.
+- Entitas TypeORM di `src/modules/faq/entities/faq.entity.ts`: `Faq` dengan kolom `question`, `answer`, `order`, `isActive`, `createdAt`, dan `updatedAt`.
+- Repositori dan interface di `src/modules/faq/repositories/` dan `interfaces/` untuk FAQ dengan pencarian (`q`), filter status aktif, serta sorting dinamis.
 - Service `FaqService` dan Controller `FaqController` dengan endpoint index paginated, show by id, store, update, dan destroy.
 - Validator Zod di `src/modules/faq/validators/faq.validator.ts`: `CreateFaqValidator` dan `UpdateFaqValidator`.
 - Serializer `FaqSerializer` di `src/modules/faq/serializers/faq.serialize.ts`.
 - Composition root wiring di `src/modules/faq/faq.module.ts`.
 - Migrasi database `1791364316005-CreateFaqsTable.ts` yang kompatibel dengan PostgreSQL dan MySQL.
 - Rute API terdaftar di `src/routes/api.ts` di bawah `/faq`.
-- Test suite komprehensif di `test/faq.test.ts` (CRUD, validasi input, filtering status/kategori, dan pagination).
+- Test suite komprehensif di `test/faq.test.ts` (CRUD, validasi input, filtering status aktif, dan pagination).
 - Spesifikasi OpenAPI Swagger lengkap di `swagger.yaml` untuk endpoint dan skema FAQ (`Faq`, `CreateFaqRequest`, `UpdateFaqRequest`).
 - Modul Konten (`content`) yang mencakup manajemen Kategori (`Category`), Artikel (`Article`), dan Metrik Pembaca (`ArticleView`).
 - Entitas TypeORM di `src/modules/content/entities/`: `Category`, `Article`, dan `ArticleView`.

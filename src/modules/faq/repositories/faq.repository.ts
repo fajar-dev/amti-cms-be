@@ -6,7 +6,6 @@ import { SortOrder } from "../../../core/interfaces/base.repository.interface"
 
 const SORTABLE_COLUMNS: Record<string, string> = {
     question: "faq.question",
-    category: "faq.category",
     order: "faq.order",
     isActive: "faq.is_active",
     createdAt: "faq.created_at",
@@ -30,13 +29,9 @@ export class TypeOrmFaqRepository implements IFaqRepository {
 
         if (q) {
             query.where(
-                "(faq.question LIKE :q OR faq.answer LIKE :q OR faq.category LIKE :q)",
+                "(faq.question LIKE :q OR faq.answer LIKE :q)",
                 { q: `%${q}%` }
             )
-        }
-
-        if (filters.category) {
-            query.andWhere("faq.category = :category", { category: filters.category })
         }
 
         if (filters.isActive !== undefined) {

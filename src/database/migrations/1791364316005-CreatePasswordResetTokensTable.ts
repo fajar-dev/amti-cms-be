@@ -1,41 +1,39 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class CreateFaqsTable1791364316004 implements MigrationInterface {
-    name = "CreateFaqsTable1791364316004";
+export class CreatePasswordResetTokensTable1791364316005 implements MigrationInterface {
+    name = "CreatePasswordResetTokensTable1791364316005";
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         const isPostgres = queryRunner.connection.options.type === "postgres";
 
         if (isPostgres) {
             await queryRunner.query(`
-                CREATE TABLE IF NOT EXISTS "faqs" (
+                CREATE TABLE IF NOT EXISTS "password_reset_tokens" (
                     "id" SERIAL PRIMARY KEY,
-                    "question" character varying(500) NOT NULL,
-                    "answer" text NOT NULL,
-                    "order" integer NOT NULL DEFAULT 0,
-                    "is_active" boolean NOT NULL DEFAULT true,
+                    "email" character varying(255) NOT NULL,
+                    "token" character varying(255) NOT NULL,
+                    "expires_at" TIMESTAMP NOT NULL,
                     "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
                 )
             `);
             await queryRunner.query(`
-                CREATE INDEX IF NOT EXISTS "IDX_faqs_order" ON "faqs" ("order")
+                CREATE INDEX IF NOT EXISTS "IDX_password_reset_tokens_email" ON "password_reset_tokens" ("email")
             `);
             await queryRunner.query(`
-                CREATE INDEX IF NOT EXISTS "IDX_faqs_is_active" ON "faqs" ("is_active")
+                CREATE INDEX IF NOT EXISTS "IDX_password_reset_tokens_token" ON "password_reset_tokens" ("token")
             `);
         } else {
             await queryRunner.query(`
-                CREATE TABLE IF NOT EXISTS \`faqs\` (
+                CREATE TABLE IF NOT EXISTS \`password_reset_tokens\` (
                     \`id\` int NOT NULL AUTO_INCREMENT,
-                    \`question\` varchar(500) NOT NULL,
-                    \`answer\` text NOT NULL,
-                    \`order\` int NOT NULL DEFAULT 0,
-                    \`is_active\` tinyint NOT NULL DEFAULT 1,
+                    \`email\` varchar(255) NOT NULL,
+                    \`token\` varchar(255) NOT NULL,
+                    \`expires_at\` timestamp NOT NULL,
                     \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                     \`updated_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
-                    INDEX \`IDX_faqs_order\` (\`order\`),
-                    INDEX \`IDX_faqs_is_active\` (\`is_active\`),
+                    INDEX \`IDX_password_reset_tokens_email\` (\`email\`),
+                    INDEX \`IDX_password_reset_tokens_token\` (\`token\`),
                     PRIMARY KEY (\`id\`)
                 ) ENGINE=InnoDB
             `);
@@ -46,9 +44,9 @@ export class CreateFaqsTable1791364316004 implements MigrationInterface {
         const isPostgres = queryRunner.connection.options.type === "postgres";
 
         if (isPostgres) {
-            await queryRunner.query(`DROP TABLE IF EXISTS "faqs"`);
+            await queryRunner.query(`DROP TABLE IF EXISTS "password_reset_tokens"`);
         } else {
-            await queryRunner.query(`DROP TABLE IF EXISTS \`faqs\``);
+            await queryRunner.query(`DROP TABLE IF EXISTS \`password_reset_tokens\``);
         }
     }
 }

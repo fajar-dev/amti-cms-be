@@ -65,6 +65,21 @@
         "View recorded successfully": "View recorded successfully",
         "Views retrieved successfully": "Views retrieved successfully"
     },
+    "rbac": {
+        "Roles retrieved successfully": "Roles retrieved successfully",
+        "Roles list retrieved successfully": "Roles list retrieved successfully",
+        "Role retrieved successfully": "Role retrieved successfully",
+        "Role created successfully": "Role created successfully",
+        "Role updated successfully": "Role updated successfully",
+        "Role deleted successfully": "Role deleted successfully",
+        "Role not found": "Role not found",
+        "Role identifier already exists": "Role identifier already exists",
+        "Role identifier already in use": "Role identifier already in use",
+        "System roles cannot be deleted": "System roles cannot be deleted",
+        "Cannot change identifier of a system role": "Cannot change identifier of a system role",
+        "Permissions retrieved successfully": "Permissions retrieved successfully",
+        "You do not have permission to perform this action": "You do not have permission to perform this action"
+    },
     "validation": {
         "Name is required": "Name is required",
         "Invalid email format": "Invalid email format",

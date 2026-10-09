@@ -8,9 +8,11 @@ import { CreateUserValidator, UpdateUserValidator } from "../modules/user/valida
 import { CreateCategoryValidator, UpdateCategoryValidator } from "../modules/content/validators/category.validator"
 import { CreateArticleValidator, UpdateArticleValidator, RecordViewValidator } from "../modules/content/validators/article.validator"
 import { CreateFaqValidator, UpdateFaqValidator } from "../modules/faq/validators/faq.validator"
+import { CreateRoleValidator, UpdateRoleValidator } from "../modules/rbac/validators/role.validator"
 
 // ── Middlewares ──────────────────────────────────────────────────────────────
 import { authMiddleware } from "../core/middlewares/auth.middleware"
+import { requirePermission } from "../core/middlewares/rbac.middleware"
 import { validationHook } from "../core/helpers/validator"
 import { BadRequestException } from "../core/exceptions/base"
 
@@ -19,6 +21,7 @@ import { authController } from "../modules/auth/auth.module"
 import { userController } from "../modules/user/user.module"
 import { categoryController, articleController } from "../modules/content/content.module"
 import { faqController } from "../modules/faq/faq.module"
+import { rbacController } from "../modules/rbac/rbac.module"
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 const routes = new Hono()
@@ -69,6 +72,15 @@ routes.get("/faq/:id", authMiddleware, (c) => faqController.show(c))
 routes.post("/faq", authMiddleware, zValidator("json", CreateFaqValidator, validationHook), (c) => faqController.store(c))
 routes.put("/faq/:id", authMiddleware, zValidator("json", UpdateFaqValidator, validationHook), (c) => faqController.update(c))
 routes.delete("/faq/:id", authMiddleware, (c) => faqController.destroy(c))
+
+// RBAC
+routes.get("/rbac/roles", authMiddleware, requirePermission("roles.view"), (c) => rbacController.index(c))
+routes.get("/rbac/roles/all", authMiddleware, (c) => rbacController.list(c))
+routes.get("/rbac/roles/:id", authMiddleware, requirePermission("roles.view"), (c) => rbacController.show(c))
+routes.post("/rbac/roles", authMiddleware, requirePermission("roles.create"), zValidator("json", CreateRoleValidator, validationHook), (c) => rbacController.store(c))
+routes.put("/rbac/roles/:id", authMiddleware, requirePermission("roles.update"), zValidator("json", UpdateRoleValidator, validationHook), (c) => rbacController.update(c))
+routes.delete("/rbac/roles/:id", authMiddleware, requirePermission("roles.delete"), (c) => rbacController.destroy(c))
+routes.get("/rbac/permissions", authMiddleware, requirePermission("roles.view"), (c) => rbacController.permissions(c))
 
 // Upload
 routes.post("/upload", authMiddleware, async (c) => {

@@ -69,6 +69,22 @@
         "Views retrieved successfully": "Daftar kunjungan berhasil diambil"
     },
 
+    "rbac": {
+        "Roles retrieved successfully": "Peran berhasil diambil",
+        "Roles list retrieved successfully": "Daftar peran berhasil diambil",
+        "Role retrieved successfully": "Peran berhasil diambil",
+        "Role created successfully": "Peran berhasil dibuat",
+        "Role updated successfully": "Peran berhasil diperbarui",
+        "Role deleted successfully": "Peran berhasil dihapus",
+        "Role not found": "Peran tidak ditemukan",
+        "Role identifier already exists": "Pengenal peran sudah ada",
+        "Role identifier already in use": "Pengenal peran sudah digunakan",
+        "System roles cannot be deleted": "Peran sistem tidak dapat dihapus",
+        "Cannot change identifier of a system role": "Tidak dapat mengubah pengenal peran sistem",
+        "Permissions retrieved successfully": "Hak akses berhasil diambil",
+        "You do not have permission to perform this action": "Anda tidak memiliki izin untuk melakukan tindakan ini"
+    },
+
     "validation": {
         "Name is required": "Nama wajib diisi",
         "Invalid email format": "Format email tidak valid",

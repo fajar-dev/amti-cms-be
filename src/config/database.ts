@@ -6,6 +6,8 @@ import { Category } from "../modules/content/entities/category.entity"
 import { Article } from "../modules/content/entities/article.entity"
 import { ArticleView } from "../modules/content/entities/article-view.entity"
 import { Faq } from "../modules/faq/entities/faq.entity"
+import { Role } from "../modules/rbac/entities/role.entity"
+import { Permission } from "../modules/rbac/entities/permission.entity"
 import { config } from "./config"
 
 /**
@@ -23,7 +25,7 @@ const defaultDataSource = new DataSource({
     password: config.database.pass,
     database: config.database.name,
     synchronize: config.database.sync,
-    entities: [User, PasswordResetToken, Category, Article, ArticleView, Faq],
+    entities: [User, PasswordResetToken, Category, Article, ArticleView, Faq, Role, Permission],
     migrations: [__dirname + "/../database/migrations/*{.ts,.js}"],
     subscribers: [],
 })

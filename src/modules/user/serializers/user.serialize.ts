@@ -14,6 +14,12 @@ export class UserSerializer {
             photo: await this.resolvePhotoUrl(user.photo),
             email: user.email,
             isActive: Boolean(user.isActive),
+            roleId: user.roleId ?? user.role?.id ?? null,
+            role: user.role ? {
+                id: user.role.id,
+                name: user.role.name,
+                displayName: user.role.displayName,
+            } : null,
             createdAt: user.createdAt
         }
     }

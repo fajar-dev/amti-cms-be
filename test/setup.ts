@@ -8,6 +8,8 @@ import { Category } from "../src/modules/content/entities/category.entity"
 import { Article } from "../src/modules/content/entities/article.entity"
 import { ArticleView } from "../src/modules/content/entities/article-view.entity"
 import { Faq } from "../src/modules/faq/entities/faq.entity"
+import { Role } from "../src/modules/rbac/entities/role.entity"
+import { Permission } from "../src/modules/rbac/entities/permission.entity"
 import { ApiResponse } from "../src/core/helpers/response"
 import { BaseException, ValidationException } from "../src/core/exceptions/base"
 import { ZodError } from "zod"
@@ -37,7 +39,7 @@ const TestDataSource = new DataSource({
     database: testDbName,
     synchronize: true,
     dropSchema: true,
-    entities: [User, PasswordResetToken, Category, Article, ArticleView, Faq],
+    entities: [User, PasswordResetToken, Category, Article, ArticleView, Faq, Role, Permission],
     logging: false,
 })
 
@@ -127,14 +129,20 @@ interface RequestOptions {
     method?: string
     headers?: Record<string, string>
     body?: any
+    token?: string
 }
 
 export async function request(app: Hono, path: string, options: RequestOptions = {}) {
-    const { method = "GET", headers = {}, body } = options
+    const { method = "GET", headers = {}, body, token } = options
+
+    const reqHeaders: Record<string, string> = { "Content-Type": "application/json", ...headers }
+    if (token) {
+        reqHeaders["Authorization"] = `Bearer ${token}`
+    }
 
     const init: RequestInit = {
         method,
-        headers: { "Content-Type": "application/json", ...headers },
+        headers: reqHeaders,
     }
 
     if (body) {

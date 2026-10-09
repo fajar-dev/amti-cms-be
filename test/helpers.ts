@@ -45,6 +45,21 @@ export function createArticleData(overrides: Record<string, any> = {}) {
     }
 }
 
+// ── Role Test Data ───────────────────────────────────────────────────────────
+
+let roleCounter = 0
+
+export function createRoleData(overrides: Record<string, any> = {}) {
+    roleCounter++
+    return {
+        name: `custom_role_${roleCounter}`,
+        displayName: `Custom Role ${roleCounter}`,
+        description: `Description for custom role ${roleCounter}`,
+        permissionIds: [],
+        ...overrides,
+    }
+}
+
 // ── Response Assertions ─────────────────────────────────────────────────────
 
 export function expectSuccess(body: any, statusCode: number = 200) {
@@ -83,4 +98,5 @@ export function resetCounters() {
     userCounter = 0
     categoryCounter = 0
     articleCounter = 0
+    roleCounter = 0
 }

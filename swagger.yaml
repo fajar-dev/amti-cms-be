@@ -25,6 +25,8 @@ tags:
     description: File upload & retrieval via MinIO object storage
   - name: FAQ
     description: Frequently Asked Questions management
+  - name: RBAC
+    description: Role-Based Access Control and permissions management
 
 components:
   securitySchemes:
@@ -344,6 +346,51 @@ components:
         answer: { type: string, example: "Click on forgot password link on the login screen." }
         order: { type: integer, example: 1 }
         isActive: { type: boolean, example: true }
+
+    Permission:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: "users.view" }
+        module: { type: string, example: "Users" }
+        description: { type: string, nullable: true, example: "View users list and details" }
+
+    Role:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: "editor" }
+        displayName: { type: string, example: "Editor" }
+        description: { type: string, nullable: true, example: "Can manage articles and categories" }
+        isSystem: { type: boolean, example: false }
+        permissions:
+          type: array
+          items: { $ref: "#/components/schemas/Permission" }
+        permissionCount: { type: integer, example: 8 }
+        userCount: { type: integer, example: 3 }
+        createdAt: { type: string, format: date-time, example: "2026-10-09T08:00:00.000Z" }
+        updatedAt: { type: string, format: date-time, example: "2026-10-09T08:00:00.000Z" }
+
+    CreateRoleRequest:
+      type: object
+      required: [name, displayName]
+      properties:
+        name: { type: string, example: "editor" }
+        displayName: { type: string, example: "Editor" }
+        description: { type: string, nullable: true, example: "Can manage articles and categories" }
+        permissionIds:
+          type: array
+          items: { type: integer, example: 1 }
+
+    UpdateRoleRequest:
+      type: object
+      properties:
+        name: { type: string, example: "editor" }
+        displayName: { type: string, example: "Editor" }
+        description: { type: string, nullable: true, example: "Can manage articles and categories" }
+        permissionIds:
+          type: array
+          items: { type: integer, example: 1 }
 
 paths:
   # ── Register ──────────────────────────────────────────────────────────────
@@ -1656,3 +1703,180 @@ paths:
                 type: object
                 properties:
                   message: { type: string, example: "Missing 'path' query parameter" }
+
+  # ── RBAC: Roles ──────────────────────────────────────────────────────────
+  /rbac/roles:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [RBAC]
+      summary: Get paginated roles list
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+        - name: q
+          in: query
+          schema: { type: string }
+        - name: sortBy
+          in: query
+          schema: { type: string, enum: [name, displayName, isSystem, createdAt] }
+        - name: order
+          in: query
+          schema: { type: string, enum: [ASC, DESC], default: ASC }
+      responses:
+        "200":
+          description: Paginated roles list
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Role" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+    post:
+      tags: [RBAC]
+      summary: Create a new role
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateRoleRequest" }
+      responses:
+        "201":
+          description: Role created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Role" }
+
+  /rbac/roles/all:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [RBAC]
+      summary: Get unpaginated list of roles for select dropdowns
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of roles
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: { type: integer, example: 1 }
+                            name: { type: string, example: "admin" }
+                            displayName: { type: string, example: "Admin" }
+                            isSystem: { type: boolean, example: false }
+
+  /rbac/roles/{id}:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [RBAC]
+      summary: Get role details by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Role details
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Role" }
+    put:
+      tags: [RBAC]
+      summary: Update role by ID
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateRoleRequest" }
+      responses:
+        "200":
+          description: Role updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Role" }
+    delete:
+      tags: [RBAC]
+      summary: Delete role by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Role deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BaseResponse"
+
+  # ── RBAC: Permissions ────────────────────────────────────────────────────
+  /rbac/permissions:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [RBAC]
+      summary: Get all available permissions grouped by module
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: List of permissions flat and grouped
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          flat:
+                            type: array
+                            items: { $ref: "#/components/schemas/Permission" }
+                          grouped:
+                            type: object
+                            additionalProperties:
+                              type: array
+                              items: { $ref: "#/components/schemas/Permission" }

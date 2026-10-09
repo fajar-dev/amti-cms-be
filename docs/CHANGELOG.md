@@ -9,6 +9,18 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 ## [Unreleased] — 2026-10-08
 
 ### Added
+- Fitur dan modul RBAC (Role-Based Access Control) lengkap:
+  - Entitas `Role` dan `Permission` di `src/modules/rbac/entities/` dengan relasi many-to-many via junction table `role_permissions`.
+  - Kolom `role_id` pada entitas `User` dengan relasi many-to-one ke `Role`.
+  - Repositori dan interface `TypeOrmRoleRepository` dan `TypeOrmPermissionRepository` di `src/modules/rbac/`.
+  - Service `RbacService` dan controller `RbacController` untuk CRUD roles, daftar permission flat & grouped by module, proteksi system roles, dan proteksi penghapusan role yang masih digunakan user.
+  - Validator Zod di `src/modules/rbac/validators/role.validator.ts`: `CreateRoleValidator` dan `UpdateRoleValidator`.
+  - Middleware otorisasi `requirePermission` dan `requireRole` di `src/core/middlewares/rbac.middleware.ts`.
+  - Migrasi `1791364316005-CreateRbacTables.ts` dengan seed role awal (`super_admin`, `admin`, `editor`, `author`) dan permission per modul (`Users`, `Roles & Permissions`, `Categories`, `Articles`, `FAQs`).
+  - Serializer `RoleSerializer` dan `PermissionSerializer`, serta integrasi `role` pada `UserSerializer` dan `AuthSerializer`.
+  - Rute API RBAC di `/api/rbac/roles`, `/api/rbac/roles/all`, `/api/rbac/roles/:id`, dan `/api/rbac/permissions`.
+  - OpenAPI Swagger specification dan i18n localization (en & id) untuk modul RBAC.
+  - Test suite komprehensif di `test/rbac.test.ts` (13 test cases).
 - Modul FAQ (`faq`) yang mencakup CRUD lengkap untuk pengelolaan Tanya Jawab (Frequently Asked Questions).
 - Entitas TypeORM di `src/modules/faq/entities/faq.entity.ts`: `Faq` dengan kolom `question`, `answer`, `order`, `isActive`, `createdAt`, dan `updatedAt`.
 - Repositori dan interface di `src/modules/faq/repositories/` dan `interfaces/` untuk FAQ dengan pencarian (`q`), filter status aktif, serta sorting dinamis.

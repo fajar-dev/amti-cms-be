@@ -62,7 +62,8 @@ export class UserService {
         if (data.photo !== undefined) {
             data.photo = minio.sanitizePath(data.photo) ?? undefined
         }
-        return await this.repository.save(data)
+        const created = await this.repository.save(data)
+        return await this.getById(created.id)
     }
 
     async update(id: number, data: Partial<User>): Promise<User> {
@@ -79,8 +80,16 @@ export class UserService {
         if (data.photo !== undefined) {
             data.photo = minio.sanitizePath(data.photo) ?? undefined
         }
+        if (data.roleId === null) {
+            user.roleId = null
+            user.role = null
+        } else if (data.roleId !== undefined) {
+            user.roleId = data.roleId
+            user.role = null
+        }
         this.repository.merge(user, data)
-        return await this.repository.save(user)
+        await this.repository.save(user)
+        return await this.getById(id)
     }
 
     async delete(id: number): Promise<void> {

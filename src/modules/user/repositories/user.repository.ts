@@ -7,8 +7,9 @@ import { SortOrder } from "../../../core/interfaces/base.repository.interface"
 const SORTABLE_COLUMNS: Record<string, string> = {
     name: "user.name",
     email: "user.email",
-    isActive: "user.is_active",
-    createdAt: "user.created_at",
+    isActive: "user.isActive",
+    createdAt: "user.createdAt",
+    role: "role.displayName",
 }
 
 export class TypeOrmUserRepository implements IUserRepository {
@@ -22,14 +23,7 @@ export class TypeOrmUserRepository implements IUserRepository {
         const offset = (page - 1) * limit
 
         const query = this.repository.createQueryBuilder("user")
-            .select([
-                "user.id AS id",
-                "user.name AS name",
-                "user.photo AS photo",
-                "user.email AS email",
-                "user.is_active AS isActive",
-                "user.created_at AS createdAt",
-            ])
+            .leftJoinAndSelect("user.role", "role")
 
         if (q) {
             query.where(
@@ -39,20 +33,18 @@ export class TypeOrmUserRepository implements IUserRepository {
         }
 
         if (filters.isActive !== undefined && filters.isActive !== "") {
-            query.andWhere("user.is_active = :isActive", { isActive: filters.isActive === "1" })
+            query.andWhere("user.isActive = :isActive", { isActive: filters.isActive === "1" || filters.isActive === "true" })
         }
 
-        // Get total count (efficient)
-        const total = await query.clone().getCount()
+        const total = await query.getCount()
 
-        // Get paginated data
         const orderColumn = (sortBy && SORTABLE_COLUMNS[sortBy]) || "user.id"
 
         const data = await query
             .orderBy(orderColumn, order)
             .limit(limit)
             .offset(offset)
-            .getRawMany()
+            .getMany()
 
         return { data, total }
     }
@@ -76,15 +68,23 @@ export class TypeOrmUserRepository implements IUserRepository {
     }
 
     async findById(id: number): Promise<User | null> {
-        return await this.repository.findOneBy({ id })
+        return await this.repository.findOne({
+            where: { id },
+            relations: ["role"]
+        })
     }
 
     async findByEmail(email: string): Promise<User | null> {
-        return await this.repository.findOneBy({ email })
+        return await this.repository.findOne({
+            where: { email },
+            relations: ["role", "role.permissions"]
+        })
     }
 
     async findByEmailWithPassword(email: string): Promise<User | null> {
         return await this.repository.createQueryBuilder("user")
+            .leftJoinAndSelect("user.role", "role")
+            .leftJoinAndSelect("role.permissions", "permission")
             .where("user.email = :email", { email })
             .addSelect("user.password")
             .getOne()

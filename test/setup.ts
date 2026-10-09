@@ -167,14 +167,26 @@ export async function registerAndLogin(
         throw new Error(`Register failed: ${JSON.stringify(regRes.body)}`)
     }
 
-    // Ensure Super Admin role exists and assign to registered user for testing
+    // Ensure Super Admin role exists with all permissions for testing
+    const permRepo = TestDataSource.getRepository(Permission)
+    let allPerms = await permRepo.find()
+    if (allPerms.length === 0) {
+        const { defaultPermissions } = await import("../src/database/seeders/rbac.seeder")
+        await permRepo.save(permRepo.create(defaultPermissions))
+        allPerms = await permRepo.find()
+    }
+
     const roleRepo = TestDataSource.getRepository(Role)
-    let superAdmin = await roleRepo.findOne({ where: { name: "Super Admin" } })
+    let superAdmin = await roleRepo.findOne({ where: { name: "Super Admin" }, relations: ["permissions"] })
     if (!superAdmin) {
         superAdmin = await roleRepo.save(roleRepo.create({
             name: "Super Admin",
             description: "Super Admin role",
+            permissions: allPerms,
         }))
+    } else if (!superAdmin.permissions || superAdmin.permissions.length === 0) {
+        superAdmin.permissions = allPerms
+        await roleRepo.save(superAdmin)
     }
     const userRepo = TestDataSource.getRepository(User)
     await userRepo.update({ id: regRes.body.data.id }, { roleId: superAdmin.id })

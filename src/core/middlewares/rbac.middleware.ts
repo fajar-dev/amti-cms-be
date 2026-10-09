@@ -9,11 +9,6 @@ export const requirePermission = (...permissions: string[]) => {
             throw new UnauthorizedException("Unauthorized access")
         }
 
-        // Super admin (role ID 1) bypasses all permission checks
-        if (user.role?.id === 1 || user.role?.name?.toLowerCase() === 'super admin') {
-            return await next()
-        }
-
         // Any user without a role has zero permissions
         if (!user.role) {
             throw new ForbiddenException("You do not have permission to perform this action")
@@ -34,10 +29,6 @@ export const requireRole = (...roles: (number | string)[]) => {
         const user = c.get('user') as User | undefined
         if (!user) {
             throw new UnauthorizedException("Unauthorized access")
-        }
-
-        if (user.role?.id === 1 || user.role?.name?.toLowerCase() === 'super admin') {
-            return await next()
         }
 
         const matches = user.role && roles.some(r => r === user.role!.id || r === user.role!.name)

@@ -70,7 +70,7 @@ export class TypeOrmUserRepository implements IUserRepository {
     async findById(id: number): Promise<User | null> {
         return await this.repository.findOne({
             where: { id },
-            relations: ["role"]
+            relations: ["role", "role.permissions"]
         })
     }
 
@@ -92,6 +92,8 @@ export class TypeOrmUserRepository implements IUserRepository {
 
     async findByIdWithPassword(id: number): Promise<User | null> {
         return await this.repository.createQueryBuilder("user")
+            .leftJoinAndSelect("user.role", "role")
+            .leftJoinAndSelect("role.permissions", "permission")
             .where("user.id = :id", { id })
             .addSelect("user.password")
             .getOne()

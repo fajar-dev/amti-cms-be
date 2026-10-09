@@ -8,6 +8,7 @@ import { CreateContactValidator, UpdateContactValidator } from "../modules/conta
 import { CreateUserValidator, UpdateUserValidator } from "../modules/user/validators/user.validator"
 import { CreateCategoryValidator, UpdateCategoryValidator } from "../modules/content/validators/category.validator"
 import { CreateArticleValidator, UpdateArticleValidator, RecordViewValidator } from "../modules/content/validators/article.validator"
+import { CreateFaqValidator, UpdateFaqValidator } from "../modules/faq/validators/faq.validator"
 
 // ── Middlewares ──────────────────────────────────────────────────────────────
 import { authMiddleware } from "../core/middlewares/auth.middleware"
@@ -19,6 +20,7 @@ import { authController } from "../modules/auth/auth.module"
 import { contactController } from "../modules/contact/contact.module"
 import { userController } from "../modules/user/user.module"
 import { categoryController, articleController } from "../modules/content/content.module"
+import { faqController } from "../modules/faq/faq.module"
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 const routes = new Hono()
@@ -69,6 +71,13 @@ routes.put("/content/articles/:id", authMiddleware, zValidator("json", UpdateArt
 routes.delete("/content/articles/:id", authMiddleware, (c) => articleController.destroy(c))
 routes.post("/content/articles/:id/view", (c) => articleController.recordView(c))
 routes.get("/content/articles/:id/views", authMiddleware, (c) => articleController.views(c))
+
+// FAQ
+routes.get("/faq", authMiddleware, (c) => faqController.index(c))
+routes.get("/faq/:id", authMiddleware, (c) => faqController.show(c))
+routes.post("/faq", authMiddleware, zValidator("json", CreateFaqValidator, validationHook), (c) => faqController.store(c))
+routes.put("/faq/:id", authMiddleware, zValidator("json", UpdateFaqValidator, validationHook), (c) => faqController.update(c))
+routes.delete("/faq/:id", authMiddleware, (c) => faqController.destroy(c))
 
 // Upload
 routes.post("/upload", authMiddleware, async (c) => {

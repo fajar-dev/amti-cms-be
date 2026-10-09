@@ -8,6 +8,7 @@ import { PasswordResetToken } from "../src/modules/auth/entities/password-reset-
 import { Category } from "../src/modules/content/entities/category.entity"
 import { Article } from "../src/modules/content/entities/article.entity"
 import { ArticleView } from "../src/modules/content/entities/article-view.entity"
+import { Faq } from "../src/modules/faq/entities/faq.entity"
 import { ApiResponse } from "../src/core/helpers/response"
 import { BaseException, ValidationException } from "../src/core/exceptions/base"
 import { ZodError } from "zod"
@@ -37,7 +38,7 @@ const TestDataSource = new DataSource({
     database: testDbName,
     synchronize: true,
     dropSchema: true,
-    entities: [User, Contact, PasswordResetToken, Category, Article, ArticleView],
+    entities: [User, Contact, PasswordResetToken, Category, Article, ArticleView, Faq],
     logging: false,
 })
 

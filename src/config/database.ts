@@ -6,6 +6,7 @@ import { PasswordResetToken } from "../modules/auth/entities/password-reset-toke
 import { Category } from "../modules/content/entities/category.entity"
 import { Article } from "../modules/content/entities/article.entity"
 import { ArticleView } from "../modules/content/entities/article-view.entity"
+import { Faq } from "../modules/faq/entities/faq.entity"
 import { config } from "./config"
 
 /**
@@ -23,7 +24,7 @@ const defaultDataSource = new DataSource({
     password: config.database.pass,
     database: config.database.name,
     synchronize: config.database.sync,
-    entities: [User, Contact, PasswordResetToken, Category, Article, ArticleView],
+    entities: [User, Contact, PasswordResetToken, Category, Article, ArticleView, Faq],
     migrations: [__dirname + "/../database/migrations/*{.ts,.js}"],
     subscribers: [],
 })

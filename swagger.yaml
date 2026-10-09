@@ -25,6 +25,8 @@ tags:
     description: Articles authoring, publishing, and metrics tracking
   - name: Upload
     description: File upload & retrieval via MinIO object storage
+  - name: FAQ
+    description: Frequently Asked Questions management
 
 components:
   securitySchemes:
@@ -362,6 +364,37 @@ components:
       type: object
       properties:
         referrer: { type: string, nullable: true, example: "https://google.com" }
+
+    Faq:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        question: { type: string, example: "How do I reset my password?" }
+        answer: { type: string, example: "Click on forgot password link on the login screen." }
+        category: { type: string, nullable: true, example: "Account" }
+        order: { type: integer, example: 1 }
+        isActive: { type: boolean, example: true }
+        createdAt: { type: string, format: date-time, example: "2026-10-09T08:00:00.000Z" }
+        updatedAt: { type: string, format: date-time, example: "2026-10-09T08:00:00.000Z" }
+
+    CreateFaqRequest:
+      type: object
+      required: [question, answer]
+      properties:
+        question: { type: string, example: "How do I reset my password?" }
+        answer: { type: string, example: "Click on forgot password link on the login screen." }
+        category: { type: string, nullable: true, example: "Account" }
+        order: { type: integer, example: 1 }
+        isActive: { type: boolean, example: true }
+
+    UpdateFaqRequest:
+      type: object
+      properties:
+        question: { type: string, example: "How do I reset my password?" }
+        answer: { type: string, example: "Click on forgot password link on the login screen." }
+        category: { type: string, nullable: true, example: "Account" }
+        order: { type: integer, example: 1 }
+        isActive: { type: boolean, example: true }
 
 paths:
   # ── Register ──────────────────────────────────────────────────────────────
@@ -1598,6 +1631,186 @@ paths:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
         "404":
           description: Article not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  # ── FAQ ──────────────────────────────────────────────────────────────────
+  /faq:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [FAQ]
+      summary: Get all FAQs (paginated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 10 }
+        - name: q
+          in: query
+          description: Search by question or answer
+          schema: { type: string }
+        - name: category
+          in: query
+          description: Filter by category
+          schema: { type: string }
+        - name: isActive
+          in: query
+          description: Filter by active status
+          schema: { type: boolean }
+        - name: sortBy
+          in: query
+          description: Column to sort by
+          schema: { type: string, enum: [order, createdAt, question] }
+        - name: order
+          in: query
+          schema: { type: string, enum: [ASC, DESC], default: ASC }
+      responses:
+        "200":
+          description: FAQs retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Faq" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    post:
+      tags: [FAQ]
+      summary: Create a new FAQ
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateFaqRequest" }
+      responses:
+        "201":
+          description: FAQ created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Faq" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /faq/{id}:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [FAQ]
+      summary: Get FAQ by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: FAQ retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Faq" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: FAQ not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    put:
+      tags: [FAQ]
+      summary: Update FAQ by ID
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateFaqRequest" }
+      responses:
+        "200":
+          description: FAQ updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Faq" }
+        "400":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: FAQ not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    delete:
+      tags: [FAQ]
+      summary: Delete FAQ by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: FAQ deleted successfully
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BaseResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: FAQ not found
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }

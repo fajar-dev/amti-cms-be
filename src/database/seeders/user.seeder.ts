@@ -19,21 +19,21 @@ const seedUsersList: SeedUserData[] = [
         email: "admin@example.com",
         password: "password",
         isActive: true,
-        roleName: "super_admin",
+        roleName: "Super Admin",
     },
     {
         name: "John Doe",
         email: "john@example.com",
         password: "password",
         isActive: true,
-        roleName: "editor",
+        roleName: "Editor",
     },
     {
         name: "Jane Smith",
         email: "jane@example.com",
         password: "password",
         isActive: true,
-        roleName: "author",
+        roleName: "Author",
     },
 ]
 

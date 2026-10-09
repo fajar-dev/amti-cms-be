@@ -9,7 +9,7 @@ const SORTABLE_COLUMNS: Record<string, string> = {
     email: "user.email",
     isActive: "user.isActive",
     createdAt: "user.createdAt",
-    role: "role.displayName",
+    role: "role.name",
 }
 
 export class TypeOrmUserRepository implements IUserRepository {

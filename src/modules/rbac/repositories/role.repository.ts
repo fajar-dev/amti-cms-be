@@ -5,9 +5,8 @@ import { IRoleRepository } from "../interfaces/role.repository.interface"
 import { SortOrder } from "../../../core/interfaces/base.repository.interface"
 
 const SORTABLE_COLUMNS: Record<string, string> = {
+    id: "role.id",
     name: "role.name",
-    displayName: "role.displayName",
-    isSystem: "role.isSystem",
     createdAt: "role.createdAt",
 }
 
@@ -27,7 +26,7 @@ export class TypeOrmRoleRepository implements IRoleRepository {
 
         if (q) {
             query.where(
-                "(role.name LIKE :q OR role.displayName LIKE :q OR role.description LIKE :q)",
+                "(role.name LIKE :q OR role.description LIKE :q)",
                 { q: `%${q}%` }
             )
         }
@@ -46,8 +45,8 @@ export class TypeOrmRoleRepository implements IRoleRepository {
 
     async findAllList(): Promise<Role[]> {
         return await this.repository.find({
-            select: ["id", "name", "displayName", "isSystem"],
-            order: { displayName: "ASC" }
+            select: ["id", "name"],
+            order: { name: "ASC" }
         })
     }
 

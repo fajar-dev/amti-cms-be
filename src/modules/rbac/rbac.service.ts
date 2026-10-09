@@ -27,10 +27,10 @@ export class RbacService {
         return role
     }
 
-    async createRole(data: { name: string; displayName: string; description?: string | null; permissionIds?: number[] }): Promise<Role> {
-        const existing = await this.roleRepository.findByName(data.name)
+    async createRole(data: { name: string; description?: string | null; permissionIds?: number[] }): Promise<Role> {
+        const existing = await this.roleRepository.findByName(data.name.trim())
         if (existing) {
-            throw new BadRequestException("Role identifier already exists")
+            throw new BadRequestException("Role name already exists")
         }
 
         let permissions: Permission[] = []
@@ -39,31 +39,22 @@ export class RbacService {
         }
 
         const role = new Role()
-        role.name = data.name.toLowerCase().trim()
-        role.displayName = data.displayName.trim()
+        role.name = data.name.trim()
         role.description = data.description ? data.description.trim() : undefined
-        role.isSystem = false
         role.permissions = permissions
 
         return await this.roleRepository.save(role)
     }
 
-    async updateRole(id: number, data: { name?: string; displayName?: string; description?: string | null; permissionIds?: number[] }): Promise<Role> {
+    async updateRole(id: number, data: { name?: string; description?: string | null; permissionIds?: number[] }): Promise<Role> {
         const role = await this.getRoleById(id)
 
-        if (data.name && data.name !== role.name) {
-            if (role.isSystem) {
-                throw new BadRequestException("Cannot change identifier of a system role")
-            }
-            const existing = await this.roleRepository.findByName(data.name)
+        if (data.name && data.name.trim() !== role.name) {
+            const existing = await this.roleRepository.findByName(data.name.trim())
             if (existing && existing.id !== id) {
-                throw new BadRequestException("Role identifier already in use")
+                throw new BadRequestException("Role name already in use")
             }
-            role.name = data.name.toLowerCase().trim()
-        }
-
-        if (data.displayName !== undefined) {
-            role.displayName = data.displayName.trim()
+            role.name = data.name.trim()
         }
 
         if (data.description !== undefined) {
@@ -82,11 +73,7 @@ export class RbacService {
     }
 
     async deleteRole(id: number): Promise<void> {
-        const role = await this.getRoleById(id)
-
-        if (role.isSystem) {
-            throw new BadRequestException("System roles cannot be deleted")
-        }
+        await this.getRoleById(id)
 
         const userCount = await this.roleRepository.countUsersByRoleId(id)
         if (userCount > 0) {

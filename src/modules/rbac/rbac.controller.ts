@@ -23,8 +23,6 @@ export class RbacController {
         return ApiResponse.success(c, roles.map(r => ({
             id: r.id,
             name: r.name,
-            displayName: r.displayName,
-            isSystem: Boolean(r.isSystem),
         })), "Roles list retrieved successfully")
     }
 

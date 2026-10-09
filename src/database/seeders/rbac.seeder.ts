@@ -34,33 +34,25 @@ export const defaultPermissions = [
 
 export const defaultRoles = [
     {
-        name: "super_admin",
-        displayName: "Super Admin",
+        name: "Super Admin",
         description: "Full system access with all permissions",
-        isSystem: true,
         permissions: defaultPermissions.map(p => p.name),
     },
     {
-        name: "admin",
-        displayName: "Admin",
+        name: "Admin",
         description: "Administrative access for users, content, and faqs",
-        isSystem: false,
         permissions: defaultPermissions.filter(p => p.name !== "roles.delete").map(p => p.name),
     },
     {
-        name: "editor",
-        displayName: "Editor",
+        name: "Editor",
         description: "Can manage articles, categories, and faqs",
-        isSystem: false,
         permissions: defaultPermissions
             .filter(p => p.name.startsWith("categories.") || p.name.startsWith("articles.") || p.name.startsWith("faqs.") || p.name === "users.view")
             .map(p => p.name),
     },
     {
-        name: "author",
-        displayName: "Author",
+        name: "Author",
         description: "Can create and view articles",
-        isSystem: false,
         permissions: ["articles.view", "articles.create", "categories.view"],
     },
 ]
@@ -100,20 +92,16 @@ export async function seedRbac(ds: DataSource) {
         if (!role) {
             role = roleRepo.create({
                 name: roleData.name,
-                displayName: roleData.displayName,
                 description: roleData.description,
-                isSystem: roleData.isSystem,
                 permissions: rolePerms,
             })
             await roleRepo.save(role)
-            console.log(`  + Role created: ${role.displayName} (${rolePerms.length} perms)`)
+            console.log(`  + Role created: ${role.name} (${rolePerms.length} perms)`)
         } else {
-            role.displayName = roleData.displayName
             role.description = roleData.description
-            role.isSystem = roleData.isSystem
             role.permissions = rolePerms
             await roleRepo.save(role)
-            console.log(`  ~ Role updated: ${role.displayName} (${rolePerms.length} perms)`)
+            console.log(`  ~ Role updated: ${role.name} (${rolePerms.length} perms)`)
         }
     }
 

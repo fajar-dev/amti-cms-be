@@ -10,14 +10,8 @@ export class Role {
     @Column({ unique: true })
     name!: string
 
-    @Column({ name: "display_name" })
-    displayName!: string
-
     @Column({ nullable: true })
     description?: string
-
-    @Column({ name: "is_system", default: false })
-    isSystem!: boolean
 
     @ManyToMany(() => Permission, (permission) => permission.roles)
     @JoinTable({

@@ -18,7 +18,6 @@ export class UserSerializer {
             role: user.role ? {
                 id: user.role.id,
                 name: user.role.name,
-                displayName: user.role.displayName,
             } : null,
             createdAt: user.createdAt
         }

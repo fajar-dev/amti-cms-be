@@ -31,19 +31,15 @@ async function seedRbacTestData() {
     const savedPerms = await permRepo.save(permissions)
 
     const superAdminRole = roleRepo.create({
-        name: "super_admin",
-        displayName: "Super Admin",
+        name: "Super Admin",
         description: "Full system access",
-        isSystem: true,
         permissions: savedPerms,
     })
     await roleRepo.save(superAdminRole)
 
     const authorRole = roleRepo.create({
-        name: "author",
-        displayName: "Author",
+        name: "Author",
         description: "Can only view and create articles",
-        isSystem: false,
         permissions: savedPerms.filter(p => p.name.startsWith("articles.")),
     })
     await roleRepo.save(authorRole)
@@ -71,9 +67,9 @@ beforeEach(async () => {
     })
     adminUser = regRes.body.data
 
-    // Assign super_admin role to adminUser
+    // Assign Super Admin role to adminUser
     const roleRepo = AppDataSource.getRepository(Role)
-    const superAdminRole = await roleRepo.findOneBy({ name: "super_admin" })
+    const superAdminRole = await roleRepo.findOneBy({ name: "Super Admin" })
     if (superAdminRole) {
         const userRepo = AppDataSource.getRepository("User")
         await userRepo.update(adminUser.id, { roleId: superAdminRole.id })
@@ -110,8 +106,8 @@ describe("RBAC - Permissions & Roles", () => {
         expectSuccess(body)
         expect(body.data).toBeInstanceOf(Array)
         expect(body.data.length).toBeGreaterThanOrEqual(2)
+        expect(body.data[0].id).toBeDefined()
         expect(body.data[0].name).toBeDefined()
-        expect(body.data[0].displayName).toBeDefined()
     })
 
     test("GET /api/rbac/roles should return paginated roles", async () => {
@@ -133,8 +129,7 @@ describe("RBAC - Permissions & Roles", () => {
         const permIds = permRes.body.data.flat.slice(0, 3).map((p: any) => p.id)
 
         const roleData = createRoleData({
-            name: "support_lead",
-            displayName: "Support Lead",
+            name: "Support Lead",
             description: "Handles customer queries",
             permissionIds: permIds,
         })
@@ -147,16 +142,13 @@ describe("RBAC - Permissions & Roles", () => {
 
         expect(status).toBe(201)
         expectSuccess(body, 201)
-        expect(body.data.name).toBe("support_lead")
-        expect(body.data.displayName).toBe("Support Lead")
-        expect(body.data.isSystem).toBe(false)
+        expect(body.data.name).toBe("Support Lead")
         expect(body.data.permissions.length).toBe(3)
     })
 
-    test("POST /api/rbac/roles should fail validation if identifier is duplicate", async () => {
+    test("POST /api/rbac/roles should fail validation if role name is duplicate", async () => {
         const roleData = createRoleData({
-            name: "super_admin",
-            displayName: "Another Super Admin",
+            name: "Super Admin",
         })
 
         const { status, body } = await request(app, "/api/rbac/roles", {
@@ -172,7 +164,7 @@ describe("RBAC - Permissions & Roles", () => {
 
     test("GET /api/rbac/roles/:id should retrieve single role details", async () => {
         const roleRepo = AppDataSource.getRepository(Role)
-        const role = await roleRepo.findOneBy({ name: "super_admin" })
+        const role = await roleRepo.findOneBy({ name: "Super Admin" })
 
         const { status, body } = await request(app, `/api/rbac/roles/${role!.id}`, {
             token: authToken,
@@ -181,13 +173,13 @@ describe("RBAC - Permissions & Roles", () => {
         expect(status).toBe(200)
         expectSuccess(body)
         expect(body.data.id).toBe(role!.id)
-        expect(body.data.name).toBe("super_admin")
+        expect(body.data.name).toBe("Super Admin")
         expect(body.data.permissions.length).toBeGreaterThan(0)
     })
 
-    test("PUT /api/rbac/roles/:id should update role display name and permissions", async () => {
+    test("PUT /api/rbac/roles/:id should update role name and permissions", async () => {
         const roleRepo = AppDataSource.getRepository(Role)
-        const authorRole = await roleRepo.findOneBy({ name: "author" })
+        const authorRole = await roleRepo.findOneBy({ name: "Author" })
         const permRes = await request(app, "/api/rbac/permissions", { token: authToken })
         const allPermIds = permRes.body.data.flat.map((p: any) => p.id)
 
@@ -195,7 +187,7 @@ describe("RBAC - Permissions & Roles", () => {
             method: "PUT",
             token: authToken,
             body: {
-                displayName: "Senior Author",
+                name: "Senior Author",
                 description: "Updated description",
                 permissionIds: allPermIds,
             },
@@ -203,45 +195,33 @@ describe("RBAC - Permissions & Roles", () => {
 
         expect(status).toBe(200)
         expectSuccess(body)
-        expect(body.data.displayName).toBe("Senior Author")
+        expect(body.data.name).toBe("Senior Author")
         expect(body.data.description).toBe("Updated description")
         expect(body.data.permissions.length).toBe(allPermIds.length)
     })
 
-    test("PUT /api/rbac/roles/:id should prevent changing identifier of a system role", async () => {
+    test("PUT /api/rbac/roles/:id should prevent duplicate role name", async () => {
         const roleRepo = AppDataSource.getRepository(Role)
-        const superAdminRole = await roleRepo.findOneBy({ name: "super_admin" })
 
-        const { status, body } = await request(app, `/api/rbac/roles/${superAdminRole!.id}`, {
+        // Create another role
+        const otherRole = await roleRepo.save(roleRepo.create({ name: "Unique Role" }))
+
+        const { status, body } = await request(app, `/api/rbac/roles/${otherRole.id}`, {
             method: "PUT",
             token: authToken,
             body: {
-                name: "renamed_super_admin",
+                name: "Super Admin",
             },
         })
 
         expect(status).toBe(400)
         expectError(body, 400)
-        expect(body.message).toContain("system role")
-    })
-
-    test("DELETE /api/rbac/roles/:id should prevent deleting system roles", async () => {
-        const roleRepo = AppDataSource.getRepository(Role)
-        const superAdminRole = await roleRepo.findOneBy({ name: "super_admin" })
-
-        const { status, body } = await request(app, `/api/rbac/roles/${superAdminRole!.id}`, {
-            method: "DELETE",
-            token: authToken,
-        })
-
-        expect(status).toBe(400)
-        expectError(body, 400)
-        expect(body.message).toContain("System roles cannot be deleted")
+        expect(body.message).toContain("already in use")
     })
 
     test("DELETE /api/rbac/roles/:id should prevent deleting a role assigned to users", async () => {
         const roleRepo = AppDataSource.getRepository(Role)
-        const authorRole = await roleRepo.findOneBy({ name: "author" })
+        const authorRole = await roleRepo.findOneBy({ name: "Author" })
 
         // Create a user assigned to author role
         const newUser = createUserData()
@@ -262,11 +242,11 @@ describe("RBAC - Permissions & Roles", () => {
         expect(body.message).toContain("assigned to")
     })
 
-    test("DELETE /api/rbac/roles/:id should successfully delete unused custom role", async () => {
+    test("DELETE /api/rbac/roles/:id should successfully delete unused role", async () => {
         const createRes = await request(app, "/api/rbac/roles", {
             method: "POST",
             token: authToken,
-            body: { name: "temp_role", displayName: "Temporary Role" },
+            body: { name: "Temporary Role" },
         })
         const createdId = createRes.body.data.id
 
@@ -289,7 +269,7 @@ describe("RBAC - Permissions & Roles", () => {
 describe("RBAC - Access Control Enforcement", () => {
     test("User with author role should be forbidden from accessing /api/rbac/roles", async () => {
         const roleRepo = AppDataSource.getRepository(Role)
-        const authorRole = await roleRepo.findOneBy({ name: "author" })
+        const authorRole = await roleRepo.findOneBy({ name: "Author" })
 
         // Register and login an author user
         const authorData = createUserData()
@@ -320,7 +300,7 @@ describe("RBAC - Access Control Enforcement", () => {
 
     test("User create and update with roleId returns role in response", async () => {
         const roleRepo = AppDataSource.getRepository(Role)
-        const authorRole = await roleRepo.findOneBy({ name: "author" })
+        const authorRole = await roleRepo.findOneBy({ name: "Author" })
 
         const newUserData = createUserData()
         const createRes = await request(app, "/api/user", {
@@ -332,7 +312,7 @@ describe("RBAC - Access Control Enforcement", () => {
         expect(createRes.status).toBe(201)
         expect(createRes.body.data.role).toBeDefined()
         expect(createRes.body.data.role.id).toBe(authorRole!.id)
-        expect(createRes.body.data.role.name).toBe("author")
+        expect(createRes.body.data.role.name).toBe("Author")
 
         const userId = createRes.body.data.id
 

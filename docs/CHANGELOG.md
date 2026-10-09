@@ -12,18 +12,19 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Fitur dan modul RBAC (Role-Based Access Control) lengkap:
   - Entitas `Role` dan `Permission` di `src/modules/rbac/entities/` dengan relasi many-to-many via junction table `role_permissions`.
   - Kolom `role_id` pada entitas `User` dengan relasi many-to-one ke `Role`.
+  - Penyederhanaan skema `Role`: penghapusan `is_system` dan `display_name`. Pengenal peran menggunakan `id` numerik dan kolom tunggal `name` untuk nama peran.
   - Repositori dan interface `TypeOrmRoleRepository` dan `TypeOrmPermissionRepository` di `src/modules/rbac/`.
-  - Service `RbacService` dan controller `RbacController` untuk CRUD roles, daftar permission flat & grouped by module, proteksi system roles, dan proteksi penghapusan role yang masih digunakan user.
-  - Validator Zod di `src/modules/rbac/validators/role.validator.ts`: `CreateRoleValidator` dan `UpdateRoleValidator`.
-  - Middleware otorisasi `requirePermission` dan `requireRole` di `src/core/middlewares/rbac.middleware.ts` dengan dukungan multi-permission check dan pencegahan bypass jika user tidak memiliki role.
+  - Service `RbacService` dan controller `RbacController` untuk CRUD roles, daftar permission flat & grouped by module, dan proteksi integritas relasional pengguna.
+  - Validator Zod di `src/modules/rbac/validators/role.validator.ts`: `CreateRoleValidator` dan `UpdateRoleValidator` (validasi nama peran tunggal).
+  - Middleware otorisasi `requirePermission` dan `requireRole` di `src/core/middlewares/rbac.middleware.ts` dengan bypass untuk role ID 1 / Super Admin, multi-permission check, dan penolakan akses user tanpa role.
   - Integrasi `requirePermission` pada seluruh endpoint User, Content (Categories & Articles), FAQ, dan RBAC di `src/routes/api.ts`.
   - Perbaikan `authMiddleware`: pemanggilan `await next()` di luar blok `try/catch` token verification agar error 403 Forbidden dari middleware otorisasi tidak tertimpa menjadi 401 Unauthorized.
-  - Struktur seeder database lengkap: `src/database/seeders/rbac.seeder.ts` (seeding 20 permissions & 4 roles default), `src/database/seeders/user.seeder.ts` (binding user ke role `super_admin`, `editor`, `author`), dan master seeder `src/database/seeders/index.ts` dengan script `bun run seed`.
+  - Struktur seeder database: `src/database/seeders/rbac.seeder.ts` (seeding 20 permissions & 4 roles default: Super Admin, Admin, Editor, Author), `src/database/seeders/user.seeder.ts` (binding user ke peran Super Admin, Editor, Author), dan master seeder `src/database/seeders/index.ts` dengan script `bun run seed`.
   - Reorganisasi seluruh migrasi database dengan prinsip 1 entity 1 migration berurutan: `CreateRolesTable` (1791364316001), `CreatePermissionsTable` (1791364316002), `CreateRolePermissionsTable` (1791364316003), `CreateUsersTable` (1791364316004), `CreatePasswordResetTokensTable` (1791364316005), `CreateCategoriesTable` (1791364316006), `CreateArticlesTable` (1791364316007), `CreateArticleViewsTable` (1791364316008), dan `CreateFaqsTable` (1791364316009).
   - Serializer `RoleSerializer` dan `PermissionSerializer`, serta integrasi `role` pada `UserSerializer` dan `AuthSerializer`.
   - Rute API RBAC di `/api/rbac/roles`, `/api/rbac/roles/all`, `/api/rbac/roles/:id`, dan `/api/rbac/permissions`.
   - OpenAPI Swagger specification dan i18n localization (en & id) untuk modul RBAC.
-  - Test suite komprehensif di `test/rbac.test.ts` (13 test cases).
+  - Test suite komprehensif di `test/rbac.test.ts` (12 test cases).
 - Modul FAQ (`faq`) yang mencakup CRUD lengkap untuk pengelolaan Tanya Jawab (Frequently Asked Questions).
 - Entitas TypeORM di `src/modules/faq/entities/faq.entity.ts`: `Faq` dengan kolom `question`, `answer`, `order`, `isActive`, `createdAt`, dan `updatedAt`.
 - Repositori dan interface di `src/modules/faq/repositories/` dan `interfaces/` untuk FAQ dengan pencarian (`q`), filter status aktif, serta sorting dinamis.

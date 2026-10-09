@@ -11,9 +11,7 @@ export class CreateRolesTable1791364316001 implements MigrationInterface {
                 CREATE TABLE IF NOT EXISTS "roles" (
                     "id" SERIAL PRIMARY KEY,
                     "name" character varying(100) NOT NULL,
-                    "display_name" character varying(150) NOT NULL,
                     "description" text NULL,
-                    "is_system" boolean NOT NULL DEFAULT false,
                     "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     CONSTRAINT "UQ_roles_name" UNIQUE ("name")
@@ -24,9 +22,7 @@ export class CreateRolesTable1791364316001 implements MigrationInterface {
                 CREATE TABLE IF NOT EXISTS \`roles\` (
                     \`id\` int NOT NULL AUTO_INCREMENT,
                     \`name\` varchar(100) NOT NULL,
-                    \`display_name\` varchar(150) NOT NULL,
                     \`description\` text NULL,
-                    \`is_system\` tinyint NOT NULL DEFAULT 0,
                     \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                     \`updated_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
                     UNIQUE INDEX \`UQ_roles_name\` (\`name\`),

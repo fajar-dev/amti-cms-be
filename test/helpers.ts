@@ -52,8 +52,7 @@ let roleCounter = 0
 export function createRoleData(overrides: Record<string, any> = {}) {
     roleCounter++
     return {
-        name: `custom_role_${roleCounter}`,
-        displayName: `Custom Role ${roleCounter}`,
+        name: `Custom Role ${roleCounter}`,
         description: `Description for custom role ${roleCounter}`,
         permissionIds: [],
         ...overrides,

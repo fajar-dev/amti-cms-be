@@ -359,10 +359,8 @@ components:
       type: object
       properties:
         id: { type: integer, example: 1 }
-        name: { type: string, example: "editor" }
-        displayName: { type: string, example: "Editor" }
+        name: { type: string, example: "Editor" }
         description: { type: string, nullable: true, example: "Can manage articles and categories" }
-        isSystem: { type: boolean, example: false }
         permissions:
           type: array
           items: { $ref: "#/components/schemas/Permission" }
@@ -373,10 +371,9 @@ components:
 
     CreateRoleRequest:
       type: object
-      required: [name, displayName]
+      required: [name]
       properties:
-        name: { type: string, example: "editor" }
-        displayName: { type: string, example: "Editor" }
+        name: { type: string, example: "Editor" }
         description: { type: string, nullable: true, example: "Can manage articles and categories" }
         permissionIds:
           type: array
@@ -385,8 +382,7 @@ components:
     UpdateRoleRequest:
       type: object
       properties:
-        name: { type: string, example: "editor" }
-        displayName: { type: string, example: "Editor" }
+        name: { type: string, example: "Editor" }
         description: { type: string, nullable: true, example: "Can manage articles and categories" }
         permissionIds:
           type: array
@@ -1725,7 +1721,7 @@ paths:
           schema: { type: string }
         - name: sortBy
           in: query
-          schema: { type: string, enum: [name, displayName, isSystem, createdAt] }
+          schema: { type: string, enum: [id, name, createdAt] }
         - name: order
           in: query
           schema: { type: string, enum: [ASC, DESC], default: ASC }
@@ -1789,9 +1785,7 @@ paths:
                           type: object
                           properties:
                             id: { type: integer, example: 1 }
-                            name: { type: string, example: "admin" }
-                            displayName: { type: string, example: "Admin" }
-                            isSystem: { type: boolean, example: false }
+                            name: { type: string, example: "Admin" }
 
   /rbac/roles/{id}:
     parameters:

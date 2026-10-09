@@ -46,6 +46,7 @@ routes.delete("/contact/:id", authMiddleware, (c) => contactController.destroy(c
 
 // User
 routes.get("/user", authMiddleware, (c) => userController.index(c))
+routes.get("/user/list", authMiddleware, (c) => userController.list(c))
 routes.get("/user/:id", authMiddleware, (c) => userController.show(c))
 routes.post("/user", authMiddleware, zValidator("json", CreateUserValidator, validationHook), (c) => userController.store(c))
 routes.put("/user/:id", authMiddleware, zValidator("json", UpdateUserValidator, validationHook), (c) => userController.update(c))

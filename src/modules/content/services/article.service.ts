@@ -21,35 +21,25 @@ function slugify(text: string): string {
 export interface CreateArticleDTO {
     title: string
     slug?: string
+    authorId?: number | null
     categoryId?: number | null
     cover?: string | null
     content: string
     tags?: string[]
     status?: ArticleStatus
-    metaTitle?: string | null
-    metaDescription?: string | null
-    metaKeywords?: string | null
-    canonicalUrl?: string | null
-    ogTitle?: string | null
-    ogDescription?: string | null
-    ogImage?: string | null
+    description?: string | null
 }
 
 export interface UpdateArticleDTO {
     title?: string
     slug?: string
+    authorId?: number | null
     categoryId?: number | null
     cover?: string | null
     content?: string
     tags?: string[]
     status?: ArticleStatus
-    metaTitle?: string | null
-    metaDescription?: string | null
-    metaKeywords?: string | null
-    canonicalUrl?: string | null
-    ogTitle?: string | null
-    ogDescription?: string | null
-    ogImage?: string | null
+    description?: string | null
 }
 
 export interface RecordViewDTO {
@@ -129,18 +119,13 @@ export class ArticleService {
         return await this.articleRepository.save({
             title: data.title,
             slug,
+            authorId: data.authorId ?? null,
             categoryId: data.categoryId ?? null,
             cover: sanitizedCover,
             content: data.content,
             tags: data.tags || [],
             status,
-            metaTitle: data.metaTitle ?? null,
-            metaDescription: data.metaDescription ?? null,
-            metaKeywords: data.metaKeywords ?? null,
-            canonicalUrl: data.canonicalUrl ?? null,
-            ogTitle: data.ogTitle ?? null,
-            ogDescription: data.ogDescription ?? null,
-            ogImage: data.ogImage ?? null,
+            description: data.description ?? null,
             viewsCount: 0,
             publishedAt,
         })
@@ -148,6 +133,10 @@ export class ArticleService {
 
     async update(id: number, data: UpdateArticleDTO): Promise<Article> {
         const article = await this.getById(id)
+
+        if (data.authorId !== undefined) {
+            article.authorId = data.authorId
+        }
 
         if (data.categoryId !== undefined) {
             if (data.categoryId !== null) {
@@ -186,13 +175,9 @@ export class ArticleService {
             article.status = data.status
         }
 
-        if (data.metaTitle !== undefined) article.metaTitle = data.metaTitle
-        if (data.metaDescription !== undefined) article.metaDescription = data.metaDescription
-        if (data.metaKeywords !== undefined) article.metaKeywords = data.metaKeywords
-        if (data.canonicalUrl !== undefined) article.canonicalUrl = data.canonicalUrl
-        if (data.ogTitle !== undefined) article.ogTitle = data.ogTitle
-        if (data.ogDescription !== undefined) article.ogDescription = data.ogDescription
-        if (data.ogImage !== undefined) article.ogImage = data.ogImage
+        if (data.description !== undefined) {
+            article.description = data.description
+        }
 
         return await this.articleRepository.save(article)
     }

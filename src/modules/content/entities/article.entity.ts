@@ -10,6 +10,7 @@ import {
     Index,
 } from "typeorm"
 import { Category } from "./category.entity"
+import { User } from "../../user/entities/user.entity"
 import type { ArticleView } from "./article-view.entity"
 import { ArticleStatus } from "../enum/article-status.enum"
 
@@ -17,6 +18,14 @@ import { ArticleStatus } from "../enum/article-status.enum"
 export class Article {
     @PrimaryGeneratedColumn()
     id!: number
+
+    @Index()
+    @Column({ name: "author_id", nullable: true })
+    authorId?: number | null
+
+    @ManyToOne(() => User, { onDelete: "SET NULL", nullable: true })
+    @JoinColumn({ name: "author_id" })
+    author?: User | null
 
     @Index()
     @Column({ name: "category_id", nullable: true })
@@ -48,27 +57,8 @@ export class Article {
     })
     status!: ArticleStatus
 
-    // ── SEO Fields ─────────────────────────────────────────────────────────────
-    @Column({ name: "meta_title", type: "varchar", length: 255, nullable: true })
-    metaTitle?: string | null
-
-    @Column({ name: "meta_description", type: "text", nullable: true })
-    metaDescription?: string | null
-
-    @Column({ name: "meta_keywords", type: "varchar", length: 255, nullable: true })
-    metaKeywords?: string | null
-
-    @Column({ name: "canonical_url", type: "varchar", length: 500, nullable: true })
-    canonicalUrl?: string | null
-
-    @Column({ name: "og_title", type: "varchar", length: 255, nullable: true })
-    ogTitle?: string | null
-
-    @Column({ name: "og_description", type: "text", nullable: true })
-    ogDescription?: string | null
-
-    @Column({ name: "og_image", type: "varchar", length: 255, nullable: true })
-    ogImage?: string | null
+    @Column({ type: "text", nullable: true })
+    description?: string | null
 
     // ── Analytics & Metadata ───────────────────────────────────────────────────
     @Column({ name: "views_count", type: "int", default: 0 })

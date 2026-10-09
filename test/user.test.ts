@@ -383,3 +383,43 @@ describe("POST /api/upload", () => {
         expect(body.data.path).toEndWith(".png")
     })
 })
+
+// ═══════════════════════════════════════════════════════════════════════════
+// GET /api/user/list — Unpaginated Users List
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("GET /api/user/list", () => {
+    test("should fail without auth", async () => {
+        const { status, body } = await request(app, "/api/user/list")
+        expect(status).toBe(401)
+        expect(body.success).toBe(false)
+    })
+
+    test("should retrieve unpaginated user list", async () => {
+        const { headers } = await registerAndLogin(app)
+
+        await request(app, "/api/user", {
+            method: "POST",
+            headers,
+            body: createUserData({ name: "User A", email: "usera@example.com" }),
+        })
+        await request(app, "/api/user", {
+            method: "POST",
+            headers,
+            body: createUserData({ name: "User B", email: "userb@example.com" }),
+        })
+
+        const { status, body } = await request(app, "/api/user/list", {
+            headers,
+        })
+
+        expect(status).toBe(200)
+        expect(body.success).toBe(true)
+        expect(Array.isArray(body.data)).toBe(true)
+        expect(body.data.length).toBeGreaterThanOrEqual(3)
+        expect(body.meta).toBeUndefined()
+        expect(body.data[0].id).toBeDefined()
+        expect(body.data[0].name).toBeDefined()
+        expect(body.data[0].email).toBeDefined()
+    })
+})

@@ -14,6 +14,15 @@ export class ArticleSerializer {
     static async single(article: Article) {
         return {
             id: article.id,
+            authorId: article.authorId || null,
+            author: article.author
+                ? {
+                    id: article.author.id,
+                    name: article.author.name,
+                    email: article.author.email,
+                    photo: article.author.photo || null,
+                }
+                : null,
             categoryId: article.categoryId || null,
             category: article.category ? CategorySerializer.single(article.category) : null,
             title: article.title,
@@ -23,13 +32,7 @@ export class ArticleSerializer {
             content: article.content,
             tags: Array.isArray(article.tags) ? article.tags : [],
             status: article.status,
-            metaTitle: article.metaTitle || null,
-            metaDescription: article.metaDescription || null,
-            metaKeywords: article.metaKeywords || null,
-            canonicalUrl: article.canonicalUrl || null,
-            ogTitle: article.ogTitle || null,
-            ogDescription: article.ogDescription || null,
-            ogImage: article.ogImage || null,
+            description: article.description || null,
             viewsCount: Number(article.viewsCount || 0),
             publishedAt: article.publishedAt || null,
             createdAt: article.createdAt,

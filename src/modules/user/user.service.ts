@@ -13,6 +13,10 @@ export class UserService {
         return await this.repository.findAll(page, limit, q, filters, sortBy, order)
     }
 
+    async getAllList(isActiveOnly = true): Promise<any[]> {
+        return await this.repository.findAllList(isActiveOnly)
+    }
+
     async getById(id: number): Promise<User> {
         const user = await this.repository.findById(id)
         if (!user) {

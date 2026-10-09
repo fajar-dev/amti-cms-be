@@ -8,6 +8,7 @@ export interface UserListFilters {
 
 export interface IUserRepository extends IBaseRepository<User> {
     findAll(page: number, limit: number, q: string, filters?: UserListFilters, sortBy?: string, order?: SortOrder): Promise<{ data: any[]; total: number }>
+    findAllList(isActiveOnly?: boolean): Promise<any[]>
     findByEmail(email: string): Promise<User | null>
     findByEmailWithPassword(email: string): Promise<User | null>
     findByIdWithPassword(id: number): Promise<User | null>

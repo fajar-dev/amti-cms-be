@@ -89,6 +89,7 @@
         "Code is required": "Kode wajib diisi",
         "Title is required": "Judul wajib diisi",
         "Title is too long": "Judul terlalu panjang",
-        "Content is required": "Konten wajib diisi"
+        "Content is required": "Konten wajib diisi",
+        "Slug is required": "Slug wajib diisi"
     }
 }

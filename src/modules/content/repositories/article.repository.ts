@@ -7,6 +7,8 @@ import { SortOrder } from "../../../core/interfaces/base.repository.interface"
 const SORTABLE_COLUMNS: Record<string, string> = {
     title: "article.title",
     status: "article.status",
+    category: "category.name",
+    author: "author.name",
     viewsCount: "article.views_count",
     createdAt: "article.created_at",
     publishedAt: "article.published_at",
@@ -29,6 +31,7 @@ export class TypeOrmArticleRepository implements IArticleRepository {
         const query = this.repository
             .createQueryBuilder("article")
             .leftJoinAndSelect("article.category", "category")
+            .leftJoinAndSelect("article.author", "author")
 
         if (q) {
             query.where(
@@ -65,6 +68,7 @@ export class TypeOrmArticleRepository implements IArticleRepository {
         return await this.repository
             .createQueryBuilder("article")
             .leftJoinAndSelect("article.category", "category")
+            .leftJoinAndSelect("article.author", "author")
             .where("article.id = :id", { id })
             .getOne()
     }
@@ -73,6 +77,7 @@ export class TypeOrmArticleRepository implements IArticleRepository {
         return await this.repository
             .createQueryBuilder("article")
             .leftJoinAndSelect("article.category", "category")
+            .leftJoinAndSelect("article.author", "author")
             .where("article.slug = :slug", { slug })
             .getOne()
     }

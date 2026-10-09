@@ -3,11 +3,12 @@ import { ArticleService } from "../services/article.service"
 import { ArticleSerializer } from "../serializers/article.serialize"
 import { ArticleViewSerializer } from "../serializers/article-view.serialize"
 import { ApiResponse } from "../../../core/helpers/response"
+import { BadRequestException } from "../../../core/exceptions/base"
 import { ArticleStatus } from "../enum/article-status.enum"
 import { RecordViewValidator } from "../validators/article.validator"
 
 export class ArticleController {
-    constructor(private readonly service: ArticleService) {}
+    constructor(private readonly service: ArticleService) { }
 
     async index(c: Context) {
         const page = Number(c.req.query("page") || 1)
@@ -40,13 +41,20 @@ export class ArticleController {
 
     async showBySlug(c: Context) {
         const slug = c.req.param("slug")
+        if (!slug) {
+            throw new BadRequestException("Slug is required")
+        }
         const article = await this.service.getBySlug(slug)
         const serialized = await ArticleSerializer.single(article)
         return ApiResponse.success(c, serialized, "Article retrieved successfully")
     }
 
     async store(c: Context) {
-        const data = c.req.valid("json" as never)
+        const data = c.req.valid("json" as never) as any
+        const user = c.get("user") as any
+        if (!data.authorId && user?.id) {
+            data.authorId = user.id
+        }
         const article = await this.service.create(data)
         const serialized = await ArticleSerializer.single(article)
         return ApiResponse.success(c, serialized, "Article created successfully", 201)

@@ -22,7 +22,7 @@ tags:
   - name: Content - Categories
     description: Content category management
   - name: Content - Articles
-    description: Articles authoring, publishing, SEO, and metrics tracking
+    description: Articles authoring, publishing, and metrics tracking
   - name: Upload
     description: File upload & retrieval via MinIO object storage
 
@@ -294,6 +294,8 @@ components:
       type: object
       properties:
         id: { type: integer, example: 1 }
+        authorId: { type: integer, nullable: true, example: 1 }
+        author: { allOf: [{ $ref: "#/components/schemas/User" }], nullable: true }
         categoryId: { type: integer, nullable: true, example: 1 }
         category: { allOf: [{ $ref: "#/components/schemas/Category" }], nullable: true }
         title: { type: string, example: "Getting Started with Nuxt 4" }
@@ -306,13 +308,7 @@ components:
           items: { type: string }
           example: ["nuxt", "vue"]
         status: { $ref: "#/components/schemas/ArticleStatus" }
-        metaTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
-        metaDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
-        metaKeywords: { type: string, nullable: true, example: "nuxt, vue, web" }
-        canonicalUrl: { type: string, nullable: true, example: "https://example.com/articles/nuxt-4" }
-        ogTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
-        ogDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
-        ogImage: { type: string, nullable: true, example: "https://example.com/og.jpg" }
+        description: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
         viewsCount: { type: integer, example: 120 }
         publishedAt: { type: string, format: date-time, nullable: true, example: "2026-10-08T08:00:00.000Z" }
         createdAt: { type: string, format: date-time, example: "2026-10-08T08:00:00.000Z" }
@@ -324,6 +320,7 @@ components:
       properties:
         title: { type: string, example: "Getting Started with Nuxt 4" }
         slug: { type: string, example: "getting-started-with-nuxt-4" }
+        authorId: { type: integer, nullable: true, example: 1 }
         categoryId: { type: integer, nullable: true, example: 1 }
         cover: { type: string, nullable: true, example: "users/cover.jpg" }
         content: { type: string, example: "<p>Article content here</p>" }
@@ -332,19 +329,14 @@ components:
           items: { type: string }
           example: ["nuxt", "vue"]
         status: { $ref: "#/components/schemas/ArticleStatus" }
-        metaTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
-        metaDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
-        metaKeywords: { type: string, nullable: true, example: "nuxt, vue, web" }
-        canonicalUrl: { type: string, nullable: true, example: "https://example.com/articles/nuxt-4" }
-        ogTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
-        ogDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
-        ogImage: { type: string, nullable: true, example: "https://example.com/og.jpg" }
+        description: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
 
     UpdateArticleRequest:
       type: object
       properties:
         title: { type: string, example: "Getting Started with Nuxt 4" }
         slug: { type: string, example: "getting-started-with-nuxt-4" }
+        authorId: { type: integer, nullable: true, example: 1 }
         categoryId: { type: integer, nullable: true, example: 1 }
         cover: { type: string, nullable: true, example: "users/cover.jpg" }
         content: { type: string, example: "<p>Article content here</p>" }
@@ -353,13 +345,7 @@ components:
           items: { type: string }
           example: ["nuxt", "vue"]
         status: { $ref: "#/components/schemas/ArticleStatus" }
-        metaTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
-        metaDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
-        metaKeywords: { type: string, nullable: true, example: "nuxt, vue, web" }
-        canonicalUrl: { type: string, nullable: true, example: "https://example.com/articles/nuxt-4" }
-        ogTitle: { type: string, nullable: true, example: "Guide to Nuxt 4" }
-        ogDescription: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
-        ogImage: { type: string, nullable: true, example: "https://example.com/og.jpg" }
+        description: { type: string, nullable: true, example: "Comprehensive guide to Nuxt 4" }
 
     ArticleView:
       type: object
@@ -943,6 +929,40 @@ paths:
                         type: array
                         items: { $ref: "#/components/schemas/User" }
                       meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /user/list:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [User]
+      summary: Get all users as a flat list (for select dropdown options)
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Users list retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            id: { type: integer, example: 1 }
+                            name: { type: string, example: "John Doe" }
+                            photo: { type: string, nullable: true, example: "https://minio/avatar.jpg" }
+                            email: { type: string, nullable: true, example: "john@example.com" }
+                            isActive: { type: boolean, example: true }
         "401":
           description: Unauthorized
           content:

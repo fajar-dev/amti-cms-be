@@ -84,6 +84,7 @@
         "Code is required": "Code is required",
         "Title is required": "Title is required",
         "Title is too long": "Title is too long",
-        "Content is required": "Content is required"
+        "Content is required": "Content is required",
+        "Slug is required": "Slug is required"
     }
 }

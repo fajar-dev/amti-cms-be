@@ -1,6 +1,7 @@
 import { Context } from "hono"
 import { UserService } from "./user.service"
 import { UserSerializer } from "./serializers/user.serialize"
+import { UserListSerializer } from "./serializers/user-list.serialize"
 import { ApiResponse } from "../../core/helpers/response"
 
 export class UserController {
@@ -19,6 +20,12 @@ export class UserController {
 
         const serialized = await UserSerializer.collection(data)
         return ApiResponse.paginate(c, serialized, total, page, limit, 'Users retrieved successfully')
+    }
+
+    async list(c: Context) {
+        const data = await this.service.getAllList()
+        const serialized = await UserListSerializer.collection(data)
+        return ApiResponse.success(c, serialized, "Users list retrieved successfully")
     }
 
     async show(c: Context) {

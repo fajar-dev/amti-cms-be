@@ -189,7 +189,7 @@ describe("Content - Categories API", () => {
 // ═══════════════════════════════════════════════════════════════════════════
 
 describe("Content - Articles API", () => {
-    test("should create an article with draft status and SEO fields", async () => {
+    test("should create an article with draft status, author, description, and tags", async () => {
         const catRes = await request(app, "/api/content/categories", {
             method: "POST",
             headers: authHeaders,
@@ -203,16 +203,11 @@ describe("Content - Articles API", () => {
             body: {
                 title: "Getting Started with Nuxt 4",
                 categoryId,
+                description: "Comprehensive guide to Nuxt 4 development.",
                 cover: "articles/nuxt-cover.png",
                 content: "<p>Welcome to Nuxt 4 tutorial.</p>",
                 tags: ["nuxt", "vue", "frontend"],
                 status: ArticleStatus.DRAFT,
-                metaTitle: "Nuxt 4 Beginner Guide",
-                metaDescription: "Learn how to build fullstack apps with Nuxt 4.",
-                metaKeywords: "nuxt, vue3, web",
-                canonicalUrl: "https://example.com/blog/nuxt-4",
-                ogTitle: "Nuxt 4 Tutorial",
-                ogDescription: "A comprehensive Nuxt 4 guide",
             },
         })
 
@@ -222,9 +217,11 @@ describe("Content - Articles API", () => {
         expect(body.data.title).toBe("Getting Started with Nuxt 4")
         expect(body.data.slug).toBe("getting-started-with-nuxt-4")
         expect(body.data.categoryId).toBe(categoryId)
+        expect(body.data.description).toBe("Comprehensive guide to Nuxt 4 development.")
+        expect(body.data.authorId).toBeDefined()
+        expect(body.data.author).toBeDefined()
         expect(body.data.status).toBe(ArticleStatus.DRAFT)
         expect(body.data.tags).toEqual(["nuxt", "vue", "frontend"])
-        expect(body.data.metaTitle).toBe("Nuxt 4 Beginner Guide")
         expect(body.data.viewsCount).toBe(0)
     })
 
@@ -326,16 +323,16 @@ describe("Content - Articles API", () => {
             headers: authHeaders,
             body: {
                 title: "Updated Title",
+                description: "Updated description for article",
                 status: ArticleStatus.PUBLISH,
-                metaTitle: "Updated SEO Meta",
             },
         })
 
         expect(status).toBe(200)
         expect(body.data.title).toBe("Updated Title")
+        expect(body.data.description).toBe("Updated description for article")
         expect(body.data.status).toBe(ArticleStatus.PUBLISH)
         expect(body.data.publishedAt).not.toBeNull()
-        expect(body.data.metaTitle).toBe("Updated SEO Meta")
     })
 
     test("should delete article", async () => {

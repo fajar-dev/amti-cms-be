@@ -57,6 +57,24 @@ export class TypeOrmUserRepository implements IUserRepository {
         return { data, total }
     }
 
+    async findAllList(isActiveOnly = true): Promise<any[]> {
+        const query = this.repository.createQueryBuilder("user")
+            .select([
+                "user.id AS id",
+                "user.name AS name",
+                "user.photo AS photo",
+                "user.email AS email",
+                "user.is_active AS isActive",
+            ])
+            .orderBy("user.name", "ASC")
+
+        if (isActiveOnly) {
+            query.where("user.is_active = :isActive", { isActive: true })
+        }
+
+        return await query.getRawMany()
+    }
+
     async findById(id: number): Promise<User | null> {
         return await this.repository.findOneBy({ id })
     }

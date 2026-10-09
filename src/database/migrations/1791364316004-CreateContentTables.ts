@@ -36,30 +36,29 @@ export class CreateContentTables1791364316004 implements MigrationInterface {
             await queryRunner.query(`
                 CREATE TABLE IF NOT EXISTS "articles" (
                     "id" SERIAL PRIMARY KEY,
+                    "author_id" integer NULL,
                     "category_id" integer NULL,
                     "title" character varying(255) NOT NULL,
                     "slug" character varying(255) NOT NULL,
+                    "description" text NULL,
                     "cover" character varying(255) NULL,
                     "content" text NOT NULL,
                     "tags" jsonb NULL,
                     "status" "articles_status_enum" NOT NULL DEFAULT 'draft',
-                    "meta_title" character varying(255) NULL,
-                    "meta_description" text NULL,
-                    "meta_keywords" character varying(255) NULL,
-                    "canonical_url" character varying(500) NULL,
-                    "og_title" character varying(255) NULL,
-                    "og_description" text NULL,
-                    "og_image" character varying(255) NULL,
                     "views_count" integer NOT NULL DEFAULT 0,
                     "published_at" TIMESTAMP NULL,
                     "created_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     "updated_at" TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
                     CONSTRAINT "UQ_articles_slug" UNIQUE ("slug"),
+                    CONSTRAINT "FK_articles_author" FOREIGN KEY ("author_id") REFERENCES "users"("id") ON DELETE SET NULL,
                     CONSTRAINT "FK_articles_category" FOREIGN KEY ("category_id") REFERENCES "categories"("id") ON DELETE SET NULL
                 )
             `);
             await queryRunner.query(`
                 CREATE INDEX IF NOT EXISTS "IDX_articles_slug" ON "articles" ("slug")
+            `);
+            await queryRunner.query(`
+                CREATE INDEX IF NOT EXISTS "IDX_articles_author_id" ON "articles" ("author_id")
             `);
             await queryRunner.query(`
                 CREATE INDEX IF NOT EXISTS "IDX_articles_category_id" ON "articles" ("category_id")
@@ -103,27 +102,24 @@ export class CreateContentTables1791364316004 implements MigrationInterface {
             await queryRunner.query(`
                 CREATE TABLE IF NOT EXISTS \`articles\` (
                     \`id\` int NOT NULL AUTO_INCREMENT,
+                    \`author_id\` int NULL,
                     \`category_id\` int NULL,
                     \`title\` varchar(255) NOT NULL,
                     \`slug\` varchar(255) NOT NULL,
+                    \`description\` text NULL,
                     \`cover\` varchar(255) NULL,
                     \`content\` longtext NOT NULL,
                     \`tags\` json NULL,
                     \`status\` enum('draft', 'publish') NOT NULL DEFAULT 'draft',
-                    \`meta_title\` varchar(255) NULL,
-                    \`meta_description\` text NULL,
-                    \`meta_keywords\` varchar(255) NULL,
-                    \`canonical_url\` varchar(500) NULL,
-                    \`og_title\` varchar(255) NULL,
-                    \`og_description\` text NULL,
-                    \`og_image\` varchar(255) NULL,
                     \`views_count\` int NOT NULL DEFAULT 0,
                     \`published_at\` timestamp NULL,
                     \`created_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
                     \`updated_at\` datetime(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
                     UNIQUE INDEX \`UQ_articles_slug\` (\`slug\`),
+                    INDEX \`IDX_articles_author_id\` (\`author_id\`),
                     INDEX \`IDX_articles_category_id\` (\`category_id\`),
                     INDEX \`IDX_articles_status\` (\`status\`),
+                    CONSTRAINT \`FK_articles_author\` FOREIGN KEY (\`author_id\`) REFERENCES \`users\` (\`id\`) ON DELETE SET NULL,
                     CONSTRAINT \`FK_articles_category\` FOREIGN KEY (\`category_id\`) REFERENCES \`categories\` (\`id\`) ON DELETE SET NULL,
                     PRIMARY KEY (\`id\`)
                 ) ENGINE=InnoDB

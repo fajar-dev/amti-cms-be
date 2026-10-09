@@ -22,6 +22,7 @@ export class TypeOrmRoleRepository implements IRoleRepository {
 
         const query = this.repository.createQueryBuilder("role")
             .leftJoinAndSelect("role.permissions", "permission")
+            .leftJoinAndSelect("role.users", "user")
             .loadRelationCountAndMap("role.userCount", "role.users")
 
         if (q) {
@@ -53,7 +54,7 @@ export class TypeOrmRoleRepository implements IRoleRepository {
     async findById(id: number): Promise<Role | null> {
         return await this.repository.findOne({
             where: { id },
-            relations: ["permissions"],
+            relations: ["permissions", "users"],
         })
     }
 

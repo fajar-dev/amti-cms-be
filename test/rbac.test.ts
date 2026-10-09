@@ -122,6 +122,8 @@ describe("RBAC - Permissions & Roles", () => {
         expect(body.data[0].permissions).toBeDefined()
         expect(body.data[0].permissionCount).toBeDefined()
         expect(body.data[0].userCount).toBeDefined()
+        expect(body.data[0].users).toBeDefined()
+        expect(body.data[0].users).toBeInstanceOf(Array)
     })
 
     test("POST /api/rbac/roles should create a new custom role with permissions", async () => {

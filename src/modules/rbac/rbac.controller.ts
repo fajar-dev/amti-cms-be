@@ -15,7 +15,7 @@ export class RbacController {
         const order = c.req.query("order")?.toUpperCase() === "DESC" ? "DESC" : "ASC"
 
         const { data, total } = await this.service.getRoles(page, limit, q, sortBy, order)
-        return ApiResponse.paginate(c, RoleSerializer.collection(data), total, page, limit, "Roles retrieved successfully")
+        return ApiResponse.paginate(c, await RoleSerializer.collection(data), total, page, limit, "Roles retrieved successfully")
     }
 
     async list(c: Context) {
@@ -29,20 +29,20 @@ export class RbacController {
     async show(c: Context) {
         const id = Number(c.req.param("id"))
         const role = await this.service.getRoleById(id)
-        return ApiResponse.success(c, RoleSerializer.single(role), "Role retrieved successfully")
+        return ApiResponse.success(c, await RoleSerializer.single(role), "Role retrieved successfully")
     }
 
     async store(c: Context) {
         const data = c.req.valid("json" as never)
         const role = await this.service.createRole(data)
-        return ApiResponse.success(c, RoleSerializer.single(role), "Role created successfully", 201)
+        return ApiResponse.success(c, await RoleSerializer.single(role), "Role created successfully", 201)
     }
 
     async update(c: Context) {
         const id = Number(c.req.param("id"))
         const data = c.req.valid("json" as never)
         const role = await this.service.updateRole(id, data)
-        return ApiResponse.success(c, RoleSerializer.single(role), "Role updated successfully")
+        return ApiResponse.success(c, await RoleSerializer.single(role), "Role updated successfully")
     }
 
     async destroy(c: Context) {

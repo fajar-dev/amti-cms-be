@@ -21,7 +21,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Perbaikan `authMiddleware`: pemanggilan `await next()` di luar blok `try/catch` token verification agar error 403 Forbidden dari middleware otorisasi tidak tertimpa menjadi 401 Unauthorized.
   - Struktur seeder database: `src/database/seeders/rbac.seeder.ts` (seeding 20 permissions & 4 roles default: Super Admin, Admin, Editor, Author), `src/database/seeders/user.seeder.ts` (binding user ke peran Super Admin, Editor, Author), dan master seeder `src/database/seeders/index.ts` dengan script `bun run seed`.
   - Reorganisasi seluruh migrasi database dengan prinsip 1 entity 1 migration berurutan: `CreateRolesTable` (1791364316001), `CreatePermissionsTable` (1791364316002), `CreateRolePermissionsTable` (1791364316003), `CreateUsersTable` (1791364316004), `CreatePasswordResetTokensTable` (1791364316005), `CreateCategoriesTable` (1791364316006), `CreateArticlesTable` (1791364316007), `CreateArticleViewsTable` (1791364316008), dan `CreateFaqsTable` (1791364316009).
-  - Serializer `RoleSerializer` dan `PermissionSerializer`, serta integrasi `role` pada `UserSerializer` dan `AuthSerializer`.
+  - Serializer `RoleSerializer` dan `PermissionSerializer`, integrasi `role` pada `UserSerializer` dan `AuthSerializer`, serta penambahan daftar pengguna (`users`) pada respons peran untuk mendukung avatar grup pengguna.
   - Rute API RBAC di `/api/rbac/roles`, `/api/rbac/roles/all`, `/api/rbac/roles/:id`, dan `/api/rbac/permissions`.
   - OpenAPI Swagger specification dan i18n localization (en & id) untuk modul RBAC.
   - Test suite komprehensif di `test/rbac.test.ts` (12 test cases).

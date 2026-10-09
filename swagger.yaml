@@ -366,6 +366,15 @@ components:
           items: { $ref: "#/components/schemas/Permission" }
         permissionCount: { type: integer, example: 8 }
         userCount: { type: integer, example: 3 }
+        users:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: integer, example: 1 }
+              name: { type: string, example: "John Doe" }
+              email: { type: string, example: "john@example.com" }
+              photo: { type: string, nullable: true, example: "https://minio.../avatar.jpg" }
         createdAt: { type: string, format: date-time, example: "2026-10-09T08:00:00.000Z" }
         updatedAt: { type: string, format: date-time, example: "2026-10-09T08:00:00.000Z" }
 

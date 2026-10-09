@@ -1,69 +1,86 @@
 import "reflect-metadata"
 import { DataSource } from "typeorm"
+import { AppDataSource } from "../../config/database"
 import { User } from "../../modules/user/entities/user.entity"
+import { Role } from "../../modules/rbac/entities/role.entity"
 import { hashPassword } from "../../core/helpers/hash"
-import { config } from "../../config/config"
 
-const dataSource = new DataSource({
-    type: config.database.type,
-    host: config.database.host,
-    port: config.database.port,
-    username: config.database.user,
-    password: config.database.pass,
-    database: config.database.name,
-    synchronize: false,
-    entities: [User],
-})
+interface SeedUserData {
+    name: string
+    email: string
+    password: string
+    isActive: boolean
+    roleName: string
+}
 
-const users: Partial<User>[] = [
+const seedUsersList: SeedUserData[] = [
     {
         name: "Super Admin",
         email: "admin@example.com",
         password: "password",
         isActive: true,
+        roleName: "super_admin",
     },
     {
         name: "John Doe",
         email: "john@example.com",
         password: "password",
         isActive: true,
+        roleName: "editor",
     },
     {
         name: "Jane Smith",
         email: "jane@example.com",
         password: "password",
         isActive: true,
+        roleName: "author",
     },
 ]
 
-async function seed() {
-    await dataSource.initialize()
-    console.log("Database connected")
+export async function seedUsers(ds: DataSource) {
+    const userRepo = ds.getRepository(User)
+    const roleRepo = ds.getRepository(Role)
 
-    const repo = dataSource.getRepository(User)
+    console.log("Seeding users...")
 
-    let inserted = 0
-    let skipped = 0
+    for (const item of seedUsersList) {
+        const role = await roleRepo.findOne({ where: { name: item.roleName } })
+        let user = await userRepo.findOne({ where: { email: item.email } })
 
-    for (const data of users) {
-        const exists = await repo.findOne({ where: { email: data.email } })
-        if (exists) {
-            console.log(`Skipped (already exists): ${data.email}`)
-            skipped++
-            continue
+        const hashedPassword = await hashPassword(item.password)
+
+        if (!user) {
+            user = userRepo.create({
+                name: item.name,
+                email: item.email,
+                password: hashedPassword,
+                isActive: item.isActive,
+                roleId: role ? role.id : null,
+            })
+            await userRepo.save(user)
+            console.log(`  + User created: ${user.email} (Role: ${item.roleName})`)
+        } else {
+            user.name = item.name
+            user.isActive = item.isActive
+            user.roleId = role ? role.id : null
+            await userRepo.save(user)
+            console.log(`  ~ User updated: ${user.email} (Role: ${item.roleName})`)
         }
-
-        const hashed = await hashPassword(data.password!)
-        await repo.save(repo.create({ ...data, password: hashed }))
-        console.log(`Seeded: ${data.email}`)
-        inserted++
     }
 
-    console.log(`\nDone! ${inserted} inserted, ${skipped} skipped.`)
-    await dataSource.destroy()
+    console.log("User seeding complete.\n")
 }
 
-seed().catch((err) => {
-    console.error("Seeder failed:", err)
-    process.exit(1)
-})
+// Standalone execution
+if (import.meta.main) {
+    AppDataSource.initialize()
+        .then(async (ds) => {
+            console.log("Connected to database")
+            await seedUsers(ds)
+            await ds.destroy()
+        })
+        .catch((err) => {
+            console.error("User seeder failed:", err)
+            process.exit(1)
+        })
+}

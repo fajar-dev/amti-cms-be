@@ -41,46 +41,46 @@ routes.put("/auth/password", authMiddleware, zValidator("json", UpdatePasswordVa
 routes.post("/auth/logout", authMiddleware, (c) => authController.logout(c))
 
 // User
-routes.get("/user", authMiddleware, (c) => userController.index(c))
-routes.get("/user/list", authMiddleware, (c) => userController.list(c))
-routes.get("/user/:id", authMiddleware, (c) => userController.show(c))
-routes.post("/user", authMiddleware, zValidator("json", CreateUserValidator, validationHook), (c) => userController.store(c))
-routes.put("/user/:id", authMiddleware, zValidator("json", UpdateUserValidator, validationHook), (c) => userController.update(c))
-routes.delete("/user/:id", authMiddleware, (c) => userController.destroy(c))
+routes.get("/user", authMiddleware, requirePermission("users.view"), (c) => userController.index(c))
+routes.get("/user/list", authMiddleware, requirePermission("users.view", "articles.create", "articles.update"), (c) => userController.list(c))
+routes.get("/user/:id", authMiddleware, requirePermission("users.view"), (c) => userController.show(c))
+routes.post("/user", authMiddleware, requirePermission("users.create"), zValidator("json", CreateUserValidator, validationHook), (c) => userController.store(c))
+routes.put("/user/:id", authMiddleware, requirePermission("users.update"), zValidator("json", UpdateUserValidator, validationHook), (c) => userController.update(c))
+routes.delete("/user/:id", authMiddleware, requirePermission("users.delete"), (c) => userController.destroy(c))
 
 // Content - Categories
-routes.get("/content/categories", authMiddleware, (c) => categoryController.index(c))
-routes.get("/content/categories/all", authMiddleware, (c) => categoryController.list(c))
-routes.get("/content/categories/:id", authMiddleware, (c) => categoryController.show(c))
-routes.post("/content/categories", authMiddleware, zValidator("json", CreateCategoryValidator, validationHook), (c) => categoryController.store(c))
-routes.put("/content/categories/:id", authMiddleware, zValidator("json", UpdateCategoryValidator, validationHook), (c) => categoryController.update(c))
-routes.delete("/content/categories/:id", authMiddleware, (c) => categoryController.destroy(c))
+routes.get("/content/categories", authMiddleware, requirePermission("categories.view"), (c) => categoryController.index(c))
+routes.get("/content/categories/all", authMiddleware, requirePermission("categories.view", "articles.create", "articles.update"), (c) => categoryController.list(c))
+routes.get("/content/categories/:id", authMiddleware, requirePermission("categories.view"), (c) => categoryController.show(c))
+routes.post("/content/categories", authMiddleware, requirePermission("categories.create"), zValidator("json", CreateCategoryValidator, validationHook), (c) => categoryController.store(c))
+routes.put("/content/categories/:id", authMiddleware, requirePermission("categories.update"), zValidator("json", UpdateCategoryValidator, validationHook), (c) => categoryController.update(c))
+routes.delete("/content/categories/:id", authMiddleware, requirePermission("categories.delete"), (c) => categoryController.destroy(c))
 
 // Content - Articles
-routes.get("/content/articles", authMiddleware, (c) => articleController.index(c))
-routes.get("/content/articles/:id", authMiddleware, (c) => articleController.show(c))
+routes.get("/content/articles", authMiddleware, requirePermission("articles.view"), (c) => articleController.index(c))
+routes.get("/content/articles/:id", authMiddleware, requirePermission("articles.view"), (c) => articleController.show(c))
 routes.get("/content/articles/slug/:slug", (c) => articleController.showBySlug(c))
-routes.post("/content/articles", authMiddleware, zValidator("json", CreateArticleValidator, validationHook), (c) => articleController.store(c))
-routes.put("/content/articles/:id", authMiddleware, zValidator("json", UpdateArticleValidator, validationHook), (c) => articleController.update(c))
-routes.delete("/content/articles/:id", authMiddleware, (c) => articleController.destroy(c))
+routes.post("/content/articles", authMiddleware, requirePermission("articles.create"), zValidator("json", CreateArticleValidator, validationHook), (c) => articleController.store(c))
+routes.put("/content/articles/:id", authMiddleware, requirePermission("articles.update"), zValidator("json", UpdateArticleValidator, validationHook), (c) => articleController.update(c))
+routes.delete("/content/articles/:id", authMiddleware, requirePermission("articles.delete"), (c) => articleController.destroy(c))
 routes.post("/content/articles/:id/view", (c) => articleController.recordView(c))
-routes.get("/content/articles/:id/views", authMiddleware, (c) => articleController.views(c))
+routes.get("/content/articles/:id/views", authMiddleware, requirePermission("articles.view"), (c) => articleController.views(c))
 
 // FAQ
-routes.get("/faq", authMiddleware, (c) => faqController.index(c))
-routes.get("/faq/:id", authMiddleware, (c) => faqController.show(c))
-routes.post("/faq", authMiddleware, zValidator("json", CreateFaqValidator, validationHook), (c) => faqController.store(c))
-routes.put("/faq/:id", authMiddleware, zValidator("json", UpdateFaqValidator, validationHook), (c) => faqController.update(c))
-routes.delete("/faq/:id", authMiddleware, (c) => faqController.destroy(c))
+routes.get("/faq", authMiddleware, requirePermission("faqs.view"), (c) => faqController.index(c))
+routes.get("/faq/:id", authMiddleware, requirePermission("faqs.view"), (c) => faqController.show(c))
+routes.post("/faq", authMiddleware, requirePermission("faqs.create"), zValidator("json", CreateFaqValidator, validationHook), (c) => faqController.store(c))
+routes.put("/faq/:id", authMiddleware, requirePermission("faqs.update"), zValidator("json", UpdateFaqValidator, validationHook), (c) => faqController.update(c))
+routes.delete("/faq/:id", authMiddleware, requirePermission("faqs.delete"), (c) => faqController.destroy(c))
 
 // RBAC
 routes.get("/rbac/roles", authMiddleware, requirePermission("roles.view"), (c) => rbacController.index(c))
-routes.get("/rbac/roles/all", authMiddleware, (c) => rbacController.list(c))
+routes.get("/rbac/roles/all", authMiddleware, requirePermission("roles.view", "users.create", "users.update"), (c) => rbacController.list(c))
 routes.get("/rbac/roles/:id", authMiddleware, requirePermission("roles.view"), (c) => rbacController.show(c))
 routes.post("/rbac/roles", authMiddleware, requirePermission("roles.create"), zValidator("json", CreateRoleValidator, validationHook), (c) => rbacController.store(c))
 routes.put("/rbac/roles/:id", authMiddleware, requirePermission("roles.update"), zValidator("json", UpdateRoleValidator, validationHook), (c) => rbacController.update(c))
 routes.delete("/rbac/roles/:id", authMiddleware, requirePermission("roles.delete"), (c) => rbacController.destroy(c))
-routes.get("/rbac/permissions", authMiddleware, requirePermission("roles.view"), (c) => rbacController.permissions(c))
+routes.get("/rbac/permissions", authMiddleware, requirePermission("roles.view", "roles.create", "roles.update"), (c) => rbacController.permissions(c))
 
 // Upload
 routes.post("/upload", authMiddleware, async (c) => {

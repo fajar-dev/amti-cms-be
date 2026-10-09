@@ -2,19 +2,25 @@ import { Context, Next } from 'hono'
 import { User } from '../../modules/user/entities/user.entity'
 import { ForbiddenException, UnauthorizedException } from '../exceptions/base'
 
-export const requirePermission = (permission: string) => {
+export const requirePermission = (...permissions: string[]) => {
     return async (c: Context, next: Next) => {
-        const user = c.get('user') as User
+        const user = c.get('user') as User | undefined
         if (!user) {
             throw new UnauthorizedException("Unauthorized access")
         }
 
-        // If user has no role assigned or is super_admin, permit access
-        if (!user.role || user.role.name === 'super_admin') {
+        // Super admin bypasses all permission checks
+        if (user.role?.name === 'super_admin') {
             return await next()
         }
 
-        const hasPerm = user.role.permissions?.some(p => p.name === permission)
+        // Any user without a role has zero permissions
+        if (!user.role) {
+            throw new ForbiddenException("You do not have permission to perform this action")
+        }
+
+        const userPerms = user.role.permissions || []
+        const hasPerm = permissions.some(required => userPerms.some(p => p.name === required))
         if (!hasPerm) {
             throw new ForbiddenException("You do not have permission to perform this action")
         }
@@ -25,16 +31,16 @@ export const requirePermission = (permission: string) => {
 
 export const requireRole = (...roles: string[]) => {
     return async (c: Context, next: Next) => {
-        const user = c.get('user') as User
+        const user = c.get('user') as User | undefined
         if (!user) {
             throw new UnauthorizedException("Unauthorized access")
         }
 
-        if (!user.role || user.role.name === 'super_admin') {
+        if (user.role?.name === 'super_admin') {
             return await next()
         }
 
-        if (!roles.includes(user.role.name)) {
+        if (!user.role || !roles.includes(user.role.name)) {
             throw new ForbiddenException("You do not have permission to perform this action")
         }
 

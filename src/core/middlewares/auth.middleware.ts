@@ -12,23 +12,28 @@ export const authMiddleware = async (c: Context, next: Next) => {
     }
 
     const token = authHeader.split(' ')[1]
-    
+    let user: User | null = null
+
     try {
         const decoded = await verify(token, config.app.jwtSecret, "HS256") as { sub: number }
         const userRepository = AppDataSource.getRepository(User)
-        const user = await userRepository.findOne({
+        user = await userRepository.findOne({
             where: { id: decoded.sub },
             relations: ["role", "role.permissions"],
-            select: ["id", "name", "photo", "email", "password", "isActive", "createdAt", "updatedAt", "roleId"]
+            select: ["id", "name", "photo", "email", "password", "isActive", "createdAt", "updatedAt", "roleId"],
         })
-
-        if (!user) {
-            throw new UnauthorizedException("Unauthorized access")
-        }
-
-        c.set('user', user)
-        await next()
-    } catch (error) {
+    } catch {
         throw new UnauthorizedException("Invalid or expired token")
     }
+
+    if (!user) {
+        throw new UnauthorizedException("Unauthorized access")
+    }
+
+    if (!user.isActive) {
+        throw new UnauthorizedException("User account is inactive")
+    }
+
+    c.set('user', user)
+    await next()
 }

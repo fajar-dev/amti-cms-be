@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from "typeorm"
-import type { Role } from "../../rbac/entities/role.entity"
+import { Role } from "../../rbac/entities/role.entity"
 
 @Entity("users")
 export class User {
@@ -24,7 +24,7 @@ export class User {
     @Column({ name: "role_id", nullable: true })
     roleId?: number | null
 
-    @ManyToOne("Role", "users", { nullable: true, onDelete: "SET NULL" })
+    @ManyToOne(() => Role, (role) => role.users, { nullable: true, onDelete: "SET NULL" })
     @JoinColumn({ name: "role_id" })
     role?: Role | null
 

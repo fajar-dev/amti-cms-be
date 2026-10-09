@@ -167,6 +167,19 @@ export async function registerAndLogin(
         throw new Error(`Register failed: ${JSON.stringify(regRes.body)}`)
     }
 
+    // Ensure super_admin role exists and assign to registered user for testing
+    const roleRepo = TestDataSource.getRepository(Role)
+    let superAdmin = await roleRepo.findOne({ where: { name: "super_admin" } })
+    if (!superAdmin) {
+        superAdmin = await roleRepo.save(roleRepo.create({
+            name: "super_admin",
+            displayName: "Super Admin",
+            isSystem: true
+        }))
+    }
+    const userRepo = TestDataSource.getRepository(User)
+    await userRepo.update({ id: regRes.body.data.id }, { roleId: superAdmin.id })
+
     // Login
     const loginRes = await request(app, "/api/auth/login", {
         method: "POST",

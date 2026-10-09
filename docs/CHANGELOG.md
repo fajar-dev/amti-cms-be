@@ -15,7 +15,10 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
   - Repositori dan interface `TypeOrmRoleRepository` dan `TypeOrmPermissionRepository` di `src/modules/rbac/`.
   - Service `RbacService` dan controller `RbacController` untuk CRUD roles, daftar permission flat & grouped by module, proteksi system roles, dan proteksi penghapusan role yang masih digunakan user.
   - Validator Zod di `src/modules/rbac/validators/role.validator.ts`: `CreateRoleValidator` dan `UpdateRoleValidator`.
-  - Middleware otorisasi `requirePermission` dan `requireRole` di `src/core/middlewares/rbac.middleware.ts`.
+  - Middleware otorisasi `requirePermission` dan `requireRole` di `src/core/middlewares/rbac.middleware.ts` dengan dukungan multi-permission check dan pencegahan bypass jika user tidak memiliki role.
+  - Integrasi `requirePermission` pada seluruh endpoint User, Content (Categories & Articles), FAQ, dan RBAC di `src/routes/api.ts`.
+  - Perbaikan `authMiddleware`: pemanggilan `await next()` di luar blok `try/catch` token verification agar error 403 Forbidden dari middleware otorisasi tidak tertimpa menjadi 401 Unauthorized.
+  - Struktur seeder database lengkap: `src/database/seeders/rbac.seeder.ts` (seeding 20 permissions & 4 roles default), `src/database/seeders/user.seeder.ts` (binding user ke role `super_admin`, `editor`, `author`), dan master seeder `src/database/seeders/index.ts` dengan script `bun run seed`.
   - Migrasi `1791364316005-CreateRbacTables.ts` dengan seed role awal (`super_admin`, `admin`, `editor`, `author`) dan permission per modul (`Users`, `Roles & Permissions`, `Categories`, `Articles`, `FAQs`).
   - Serializer `RoleSerializer` dan `PermissionSerializer`, serta integrasi `role` pada `UserSerializer` dan `AuthSerializer`.
   - Rute API RBAC di `/api/rbac/roles`, `/api/rbac/roles/all`, `/api/rbac/roles/:id`, dan `/api/rbac/permissions`.

@@ -1,7 +1,7 @@
 import { MigrationInterface, QueryRunner } from "typeorm";
 
-export class CreatePasswordResetTokensTable1791364316003 implements MigrationInterface {
-    name = 'CreatePasswordResetTokensTable1791364316003'
+export class CreatePasswordResetTokensTable1791364316002 implements MigrationInterface {
+    name = 'CreatePasswordResetTokensTable1791364316002'
 
     public async up(queryRunner: QueryRunner): Promise<void> {
         const isPostgres = queryRunner.connection.options.type === "postgres";

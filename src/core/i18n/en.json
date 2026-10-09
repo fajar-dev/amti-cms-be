@@ -47,14 +47,6 @@
         "Users retrieved successfully": "Users retrieved successfully",
         "User not found": "User not found"
     },
-    "contact": {
-        "Contact created successfully": "Contact created successfully",
-        "Contact updated successfully": "Contact updated successfully",
-        "Contact deleted successfully": "Contact deleted successfully",
-        "Contact retrieved successfully": "Contact retrieved successfully",
-        "Contacts retrieved successfully": "Contacts retrieved successfully",
-        "Contact not found": "Contact not found"
-    },
     "content": {
         "Category created successfully": "Category created successfully",
         "Category updated successfully": "Category updated successfully",

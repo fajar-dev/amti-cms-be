@@ -4,7 +4,6 @@ import crypto from "crypto"
 
 // ── Validators ──────────────────────────────────────────────────────────────
 import { RegisterValidator, LoginValidator, ForgotPasswordValidator, ResetPasswordValidator, RefreshTokenValidator, GoogleLoginValidator, UpdateProfileValidator, UpdatePasswordValidator } from "../modules/auth/validators/auth.validator"
-import { CreateContactValidator, UpdateContactValidator } from "../modules/contact/validators/contact.validator"
 import { CreateUserValidator, UpdateUserValidator } from "../modules/user/validators/user.validator"
 import { CreateCategoryValidator, UpdateCategoryValidator } from "../modules/content/validators/category.validator"
 import { CreateArticleValidator, UpdateArticleValidator, RecordViewValidator } from "../modules/content/validators/article.validator"
@@ -17,7 +16,6 @@ import { BadRequestException } from "../core/exceptions/base"
 
 // ── Modules (controllers wired with their dependencies) ──────────────────────
 import { authController } from "../modules/auth/auth.module"
-import { contactController } from "../modules/contact/contact.module"
 import { userController } from "../modules/user/user.module"
 import { categoryController, articleController } from "../modules/content/content.module"
 import { faqController } from "../modules/faq/faq.module"
@@ -38,13 +36,6 @@ routes.get("/auth/me", authMiddleware, (c) => authController.me(c))
 routes.put("/auth/profile", authMiddleware, zValidator("json", UpdateProfileValidator, validationHook), (c) => authController.updateProfile(c))
 routes.put("/auth/password", authMiddleware, zValidator("json", UpdatePasswordValidator, validationHook), (c) => authController.updatePassword(c))
 routes.post("/auth/logout", authMiddleware, (c) => authController.logout(c))
-
-// Contact
-routes.get("/contact", authMiddleware, (c) => contactController.index(c))
-routes.get("/contact/:id", authMiddleware, (c) => contactController.show(c))
-routes.post("/contact", authMiddleware, zValidator("json", CreateContactValidator, validationHook), (c) => contactController.store(c))
-routes.put("/contact/:id", authMiddleware, zValidator("json", UpdateContactValidator, validationHook), (c) => contactController.update(c))
-routes.delete("/contact/:id", authMiddleware, (c) => contactController.destroy(c))
 
 // User
 routes.get("/user", authMiddleware, (c) => userController.index(c))

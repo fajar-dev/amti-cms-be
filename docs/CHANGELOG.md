@@ -59,6 +59,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 - Update `.env`, `.env.dist`, `src/config/config.ts`, `docker-compose.yaml`, `swagger.yaml`, dan seluruh dokumentasi terkait.
 
 ### Removed
+- Seluruh fitur, modul, dan rute terkait Contact (`src/modules/contact/`, rute `/api/contact`, tabel `contacts`, migrasi `1791364316002-CreateContactsTable.ts`, test suite, dan spesifikasi OpenAPI Swagger).
 - Seluruh kolom dan fitur SEO pada artikel (`meta_title`, `meta_description`, `meta_keywords`, `canonical_url`, `og_title`, `og_description`, `og_image`) dari validator, entitas, serializer, migrasi, dan OpenAPI Swagger.
 
 ---

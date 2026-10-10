@@ -104,7 +104,12 @@ routes.patch("/messages/:id/read", authMiddleware, requirePermission("messages.u
 routes.delete("/messages/:id", authMiddleware, requirePermission("messages.delete"), (c) => messageController.destroy(c))
 
 // Dashboard
-routes.get("/dashboard/stats", authMiddleware, (c) => dashboardController.getStats(c))
+routes.get("/dashboard/summary", authMiddleware, (c) => dashboardController.getSummary(c))
+routes.get("/dashboard/views-trend", authMiddleware, (c) => dashboardController.getViewsTrend(c))
+routes.get("/dashboard/categories-distribution", authMiddleware, (c) => dashboardController.getCategoriesDistribution(c))
+routes.get("/dashboard/messages-trend", authMiddleware, (c) => dashboardController.getMessagesTrend(c))
+routes.get("/dashboard/recent-articles", authMiddleware, (c) => dashboardController.getRecentArticles(c))
+routes.get("/dashboard/recent-messages", authMiddleware, (c) => dashboardController.getRecentMessages(c))
 
 // Upload
 routes.post("/upload", authMiddleware, async (c) => {

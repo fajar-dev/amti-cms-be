@@ -8,7 +8,7 @@ import { ArticleView } from "../src/modules/content/entities/article-view.entity
 import { Message } from "../src/modules/message/entities/message.entity"
 import { ArticleStatus } from "../src/modules/content/enum/article-status.enum"
 
-describe("Dashboard - Statistics & Metrics", () => {
+describe("Dashboard - Modular Statistics Endpoints", () => {
     let app: Hono
     let auth: { accessToken: string; headers: { Authorization: string } }
 
@@ -30,119 +30,145 @@ describe("Dashboard - Statistics & Metrics", () => {
         })
     })
 
-    it("GET /api/dashboard/stats should fail without auth token", async () => {
-        const res = await request(app, "/api/dashboard/stats")
-        expect(res.status).toBe(401)
-        expect(res.body.success).toBe(false)
+    it("should fail without auth token across dashboard endpoints", async () => {
+        const endpoints = [
+            "/api/dashboard/summary",
+            "/api/dashboard/views-trend",
+            "/api/dashboard/categories-distribution",
+            "/api/dashboard/messages-trend",
+            "/api/dashboard/recent-articles",
+            "/api/dashboard/recent-messages",
+        ]
+
+        for (const ep of endpoints) {
+            const res = await request(app, ep)
+            expect(res.status).toBe(401)
+            expect(res.body.success).toBe(false)
+        }
     })
 
-    it("GET /api/dashboard/stats should return structure even when empty", async () => {
-        const res = await request(app, "/api/dashboard/stats", {
-            headers: auth.headers,
-        })
-
-        expect(res.status).toBe(200)
-        expect(res.body.success).toBe(true)
-        expect(res.body.data).toBeDefined()
-        expect(res.body.data.summary).toBeDefined()
-        expect(res.body.data.summary.totalArticles).toBe(0)
-        expect(res.body.data.summary.totalUsers).toBe(1)
-        expect(res.body.data.viewsTrend).toBeArray()
-        expect(res.body.data.viewsTrend.length).toBe(7)
-        expect(res.body.data.articlesByCategory).toBeArray()
-        expect(res.body.data.messagesTrend).toBeArray()
-        expect(res.body.data.messagesTrend.length).toBe(6)
-        expect(res.body.data.recentArticles).toBeArray()
-        expect(res.body.data.recentMessages).toBeArray()
-    })
-
-    it("GET /api/dashboard/stats should return dynamic counts when data exists", async () => {
+    it("GET /api/dashboard/summary should return metrics", async () => {
         const catRepo = AppDataSource.getRepository(Category)
         const artRepo = AppDataSource.getRepository(Article)
-        const viewRepo = AppDataSource.getRepository(ArticleView)
         const msgRepo = AppDataSource.getRepository(Message)
 
-        // Create Category
-        const category = await catRepo.save(
-            catRepo.create({
-                name: "Teknologi",
-                slug: "teknologi",
-            })
-        )
+        const category = await catRepo.save(catRepo.create({ name: "Tekno", slug: "tekno" }))
+        await artRepo.save(artRepo.create({
+            title: "Art 1",
+            slug: "art-1",
+            content: "Body 1",
+            status: ArticleStatus.PUBLISH,
+            categoryId: category.id,
+            viewsCount: 10,
+        }))
+        await artRepo.save(artRepo.create({
+            title: "Art 2",
+            slug: "art-2",
+            content: "Body 2",
+            status: ArticleStatus.DRAFT,
+            categoryId: category.id,
+            viewsCount: 0,
+        }))
+        await msgRepo.save(msgRepo.create({
+            name: "Sender",
+            email: "s@example.com",
+            subject: "Hi",
+            message: "Msg",
+            isRead: false,
+        }))
 
-        // Create Articles
-        const article1 = await artRepo.save(
-            artRepo.create({
-                title: "Artikel Pertama",
-                slug: "artikel-pertama",
-                content: "Konten pertama",
-                status: ArticleStatus.PUBLISH,
-                categoryId: category.id,
-                viewsCount: 15,
-            })
-        )
-
-        const article2 = await artRepo.save(
-            artRepo.create({
-                title: "Artikel Draft",
-                slug: "artikel-draft",
-                content: "Konten draft",
-                status: ArticleStatus.DRAFT,
-                categoryId: category.id,
-                viewsCount: 0,
-            })
-        )
-
-        // Create Views
-        await viewRepo.save(
-            viewRepo.create({
-                articleId: article1.id,
-                viewedAt: new Date(),
-            })
-        )
-
-        // Create Messages
-        await msgRepo.save(
-            msgRepo.create({
-                name: "Sender 1",
-                email: "sender1@example.com",
-                subject: "Pertanyaan",
-                message: "Halo saya mau bertanya",
-                isRead: false,
-            })
-        )
-
-        await msgRepo.save(
-            msgRepo.create({
-                name: "Sender 2",
-                email: "sender2@example.com",
-                subject: "Info",
-                message: "Pesan info",
-                isRead: true,
-            })
-        )
-
-        const res = await request(app, "/api/dashboard/stats", {
-            headers: auth.headers,
-        })
-
+        const res = await request(app, "/api/dashboard/summary", { headers: auth.headers })
         expect(res.status).toBe(200)
         expect(res.body.success).toBe(true)
-        expect(res.body.data.summary.totalArticles).toBe(2)
-        expect(res.body.data.summary.publishedArticles).toBe(1)
-        expect(res.body.data.summary.draftArticles).toBe(1)
-        expect(res.body.data.summary.totalCategories).toBe(1)
-        expect(res.body.data.summary.totalViews).toBe(15)
-        expect(res.body.data.summary.totalMessages).toBe(2)
-        expect(res.body.data.summary.unreadMessages).toBe(1)
+        expect(res.body.data.totalArticles).toBe(2)
+        expect(res.body.data.publishedArticles).toBe(1)
+        expect(res.body.data.draftArticles).toBe(1)
+        expect(res.body.data.totalViews).toBe(10)
+        expect(res.body.data.totalMessages).toBe(1)
+        expect(res.body.data.unreadMessages).toBe(1)
+    })
 
-        // Category breakdown
-        expect(res.body.data.articlesByCategory.length).toBe(1)
-        expect(res.body.data.articlesByCategory[0].name).toBe("Teknologi")
-        expect(res.body.data.articlesByCategory[0].count).toBe(2)
+    it("GET /api/dashboard/views-trend should return daily trend items", async () => {
+        const res = await request(app, "/api/dashboard/views-trend?days=7", { headers: auth.headers })
+        expect(res.status).toBe(200)
+        expect(res.body.success).toBe(true)
+        expect(res.body.data).toBeArray()
+        expect(res.body.data.length).toBe(7)
+        expect(res.body.data[0]).toHaveProperty("date")
+        expect(res.body.data[0]).toHaveProperty("label")
+        expect(res.body.data[0]).toHaveProperty("views")
+        expect(res.body.data[0]).toHaveProperty("articles")
+    })
 
-        // Recent items
-        expect(res.body.data.recentArticles.length).toBe(2)
-        expect(res.body.data.recentMessages.length).toBe(2)
+    it("GET /api/dashboard/categories-distribution should return articles per category", async () => {
+        const catRepo = AppDataSource.getRepository(Category)
+        const artRepo = AppDataSource.getRepository(Article)
+
+        const cat = await catRepo.save(catRepo.create({ name: "Bisnis", slug: "bisnis" }))
+        await artRepo.save(artRepo.create({
+            title: "Biz 1",
+            slug: "biz-1",
+            content: "Content",
+            status: ArticleStatus.PUBLISH,
+            categoryId: cat.id,
+        }))
+
+        const res = await request(app, "/api/dashboard/categories-distribution", { headers: auth.headers })
+        expect(res.status).toBe(200)
+        expect(res.body.success).toBe(true)
+        expect(res.body.data).toBeArray()
+        expect(res.body.data.length).toBe(1)
+        expect(res.body.data[0].name).toBe("Bisnis")
+        expect(res.body.data[0].count).toBe(1)
+    })
+
+    it("GET /api/dashboard/messages-trend should return monthly trend", async () => {
+        const res = await request(app, "/api/dashboard/messages-trend?months=6", { headers: auth.headers })
+        expect(res.status).toBe(200)
+        expect(res.body.success).toBe(true)
+        expect(res.body.data).toBeArray()
+        expect(res.body.data.length).toBe(6)
+        expect(res.body.data[0]).toHaveProperty("month")
+        expect(res.body.data[0]).toHaveProperty("unread")
+        expect(res.body.data[0]).toHaveProperty("read")
+    })
+
+    it("GET /api/dashboard/recent-articles should return serialized articles", async () => {
+        const catRepo = AppDataSource.getRepository(Category)
+        const artRepo = AppDataSource.getRepository(Article)
+
+        const cat = await catRepo.save(catRepo.create({ name: "Opini", slug: "opini" }))
+        await artRepo.save(artRepo.create({
+            title: "Recent 1",
+            slug: "recent-1",
+            content: "Content",
+            status: ArticleStatus.PUBLISH,
+            categoryId: cat.id,
+        }))
+
+        const res = await request(app, "/api/dashboard/recent-articles?limit=5", { headers: auth.headers })
+        expect(res.status).toBe(200)
+        expect(res.body.success).toBe(true)
+        expect(res.body.data.length).toBe(1)
+        expect(res.body.data[0].title).toBe("Recent 1")
+        expect(res.body.data[0].category.name).toBe("Opini")
+    })
+
+    it("GET /api/dashboard/recent-messages should return serialized messages", async () => {
+        const msgRepo = AppDataSource.getRepository(Message)
+        await msgRepo.save(msgRepo.create({
+            name: "User Test",
+            email: "test@example.com",
+            subject: "Inquiry",
+            message: "Hello",
+            isRead: false,
+        }))
+
+        const res = await request(app, "/api/dashboard/recent-messages?limit=5", { headers: auth.headers })
+        expect(res.status).toBe(200)
+        expect(res.body.success).toBe(true)
+        expect(res.body.data.length).toBe(1)
+        expect(res.body.data[0].name).toBe("User Test")
+        expect(res.body.data[0].isRead).toBe(false)
     })
 })

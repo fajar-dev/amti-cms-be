@@ -2514,18 +2514,18 @@ paths:
               schema: { $ref: "#/components/schemas/ValidationError" }
 
   # ── Dashboard ────────────────────────────────────────────────────────────
-  /dashboard/stats:
+  /dashboard/summary:
     parameters:
       - $ref: "#/components/parameters/AcceptLanguage"
     get:
       tags: [Dashboard]
-      summary: Retrieve dashboard statistics and metrics
-      description: Returns aggregated metrics, trends (views, articles, messages), and recent activity for the CMS dashboard.
+      summary: Retrieve dashboard summary metrics
+      description: Returns key summary metrics including articles, views, messages, and users counts.
       security:
         - bearerAuth: []
       responses:
         "200":
-          description: Dashboard statistics retrieved successfully
+          description: Dashboard summary retrieved successfully
           content:
             application/json:
               schema:
@@ -2533,7 +2533,167 @@ paths:
                   - $ref: "#/components/schemas/BaseResponse"
                   - type: object
                     properties:
-                      data: { $ref: "#/components/schemas/DashboardStats" }
+                      data: { $ref: "#/components/schemas/DashboardSummary" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /dashboard/views-trend:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: days
+        in: query
+        required: false
+        schema: { type: integer, default: 7 }
+        description: Number of days to include in trend
+    get:
+      tags: [Dashboard]
+      summary: Retrieve views and article publication trend
+      description: Returns daily views and article counts for the specified period.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Views trend retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/DashboardViewsTrend" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /dashboard/categories-distribution:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [Dashboard]
+      summary: Retrieve articles distribution across categories
+      description: Returns article count grouped by category.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Categories distribution retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/DashboardCategoryMetric" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /dashboard/messages-trend:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: months
+        in: query
+        required: false
+        schema: { type: integer, default: 6 }
+        description: Number of months to include in trend
+    get:
+      tags: [Dashboard]
+      summary: Retrieve monthly message inquiries trend
+      description: Returns unread vs read message counts grouped by month.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Messages trend retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/DashboardMessageTrend" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /dashboard/recent-articles:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: limit
+        in: query
+        required: false
+        schema: { type: integer, default: 5 }
+        description: Number of recent articles to retrieve
+    get:
+      tags: [Dashboard]
+      summary: Retrieve recently published articles
+      description: Returns list of recent articles with metadata.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Recent articles retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { type: object }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  /dashboard/recent-messages:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: limit
+        in: query
+        required: false
+        schema: { type: integer, default: 5 }
+        description: Number of recent messages to retrieve
+    get:
+      tags: [Dashboard]
+      summary: Retrieve recently received contact messages
+      description: Returns list of recent contact inquiries.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Recent messages retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { type: object }
         "401":
           description: Unauthorized
           content:

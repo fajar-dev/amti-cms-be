@@ -152,6 +152,7 @@ describe("Dashboard - Modular Statistics Endpoints", () => {
         expect(res.body.data.length).toBe(1)
         expect(res.body.data[0].title).toBe("Recent 1")
         expect(res.body.data[0].category.name).toBe("Opini")
+        expect(res.body.data[0]).toHaveProperty("coverUrl")
     })
 
     it("GET /api/dashboard/recent-messages should return serialized messages", async () => {

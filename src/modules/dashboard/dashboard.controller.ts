@@ -31,7 +31,7 @@ export class DashboardController {
     async getRecentArticles(c: Context) {
         const limit = Number(c.req.query("limit") || 5)
         const articles = await this.service.getRecentArticles(limit)
-        return ApiResponse.success(c, DashboardSerializer.recentArticles(articles), "Recent articles retrieved successfully")
+        return ApiResponse.success(c, await DashboardSerializer.recentArticles(articles), "Recent articles retrieved successfully")
     }
 
     async getRecentMessages(c: Context) {

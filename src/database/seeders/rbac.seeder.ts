@@ -30,6 +30,9 @@ export const defaultPermissions = [
     { name: "faqs.create", module: "FAQs", description: "Create new FAQ" },
     { name: "faqs.update", module: "FAQs", description: "Update existing FAQ" },
     { name: "faqs.delete", module: "FAQs", description: "Delete FAQ" },
+    // Settings
+    { name: "settings.view", module: "Settings", description: "View system settings" },
+    { name: "settings.update", module: "Settings", description: "Update system settings" },
 ]
 
 export const defaultRoles = [

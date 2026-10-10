@@ -2,6 +2,7 @@ import "reflect-metadata"
 import { AppDataSource } from "../../config/database"
 import { seedRbac } from "./rbac.seeder"
 import { seedUsers } from "./user.seeder"
+import { seedSettings } from "./setting.seeder"
 
 async function runAllSeeders() {
     console.log("=== Starting Database Seeders ===")
@@ -11,6 +12,7 @@ async function runAllSeeders() {
     try {
         await seedRbac(ds)
         await seedUsers(ds)
+        await seedSettings(ds)
         console.log("=== All seeders executed successfully! ===")
     } catch (error) {
         console.error("Seeder execution failed:", error)

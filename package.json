@@ -12,7 +12,8 @@
     "migration:create": "bun run ./node_modules/typeorm/cli.js migration:create",
     "seed": "bun run src/database/seeders/index.ts",
     "seed:rbac": "bun run src/database/seeders/rbac.seeder.ts",
-    "seed:users": "bun run src/database/seeders/user.seeder.ts"
+    "seed:users": "bun run src/database/seeders/user.seeder.ts",
+    "seed:settings": "bun run src/database/seeders/setting.seeder.ts"
   },
   "dependencies": {
     "@hono/swagger-ui": "^0.6.1",

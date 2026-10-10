@@ -9,6 +9,7 @@ import { CreateCategoryValidator, UpdateCategoryValidator } from "../modules/con
 import { CreateArticleValidator, UpdateArticleValidator, RecordViewValidator } from "../modules/content/validators/article.validator"
 import { CreateFaqValidator, UpdateFaqValidator } from "../modules/faq/validators/faq.validator"
 import { CreateRoleValidator, UpdateRoleValidator } from "../modules/rbac/validators/role.validator"
+import { UpdateSettingValidator } from "../modules/setting/validators/setting.validator"
 
 // ── Middlewares ──────────────────────────────────────────────────────────────
 import { authMiddleware } from "../core/middlewares/auth.middleware"
@@ -22,6 +23,7 @@ import { userController } from "../modules/user/user.module"
 import { categoryController, articleController } from "../modules/content/content.module"
 import { faqController } from "../modules/faq/faq.module"
 import { rbacController } from "../modules/rbac/rbac.module"
+import { settingController } from "../modules/setting/setting.module"
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 const routes = new Hono()
@@ -81,6 +83,11 @@ routes.post("/rbac/roles", authMiddleware, requirePermission("roles.create"), zV
 routes.put("/rbac/roles/:id", authMiddleware, requirePermission("roles.update"), zValidator("json", UpdateRoleValidator, validationHook), (c) => rbacController.update(c))
 routes.delete("/rbac/roles/:id", authMiddleware, requirePermission("roles.delete"), (c) => rbacController.destroy(c))
 routes.get("/rbac/permissions", authMiddleware, requirePermission("roles.view", "roles.create", "roles.update"), (c) => rbacController.permissions(c))
+
+// Settings
+routes.get("/settings/public", (c) => settingController.getPublic(c))
+routes.get("/settings", authMiddleware, requirePermission("settings.view"), (c) => settingController.show(c))
+routes.put("/settings", authMiddleware, requirePermission("settings.update"), zValidator("json", UpdateSettingValidator, validationHook), (c) => settingController.update(c))
 
 // Upload
 routes.post("/upload", authMiddleware, async (c) => {

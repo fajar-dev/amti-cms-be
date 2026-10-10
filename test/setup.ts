@@ -11,6 +11,7 @@ import { Faq } from "../src/modules/faq/entities/faq.entity"
 import { Role } from "../src/modules/rbac/entities/role.entity"
 import { Permission } from "../src/modules/rbac/entities/permission.entity"
 import { Setting } from "../src/modules/setting/entities/setting.entity"
+import { Message } from "../src/modules/message/entities/message.entity"
 import { ApiResponse } from "../src/core/helpers/response"
 import { BaseException, ValidationException } from "../src/core/exceptions/base"
 import { ZodError } from "zod"
@@ -40,7 +41,7 @@ const TestDataSource = new DataSource({
     database: testDbName,
     synchronize: true,
     dropSchema: true,
-    entities: [User, PasswordResetToken, Category, Article, ArticleView, Faq, Role, Permission, Setting],
+    entities: [User, PasswordResetToken, Category, Article, ArticleView, Faq, Role, Permission, Setting, Message],
     logging: false,
 })
 

@@ -10,6 +10,7 @@ import { CreateArticleValidator, UpdateArticleValidator, RecordViewValidator } f
 import { CreateFaqValidator, UpdateFaqValidator } from "../modules/faq/validators/faq.validator"
 import { CreateRoleValidator, UpdateRoleValidator } from "../modules/rbac/validators/role.validator"
 import { UpdateSettingValidator, UpdateSettingMetaValidator, UpdateSettingContactValidator, UpdateSettingSocialValidator } from "../modules/setting/validators/setting.validator"
+import { CreateMessageValidator, UpdateMessageStatusValidator } from "../modules/message/validators/message.validator"
 
 // ── Middlewares ──────────────────────────────────────────────────────────────
 import { authMiddleware } from "../core/middlewares/auth.middleware"
@@ -24,6 +25,7 @@ import { categoryController, articleController } from "../modules/content/conten
 import { faqController } from "../modules/faq/faq.module"
 import { rbacController } from "../modules/rbac/rbac.module"
 import { settingController } from "../modules/setting/setting.module"
+import { messageController } from "../modules/message/message.module"
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 const routes = new Hono()
@@ -91,6 +93,14 @@ routes.put("/settings", authMiddleware, requirePermission("settings.update"), zV
 routes.put("/settings/meta", authMiddleware, requirePermission("settings.meta.update", "settings.update"), zValidator("json", UpdateSettingMetaValidator, validationHook), (c) => settingController.updateMeta(c))
 routes.put("/settings/contact", authMiddleware, requirePermission("settings.contact.update", "settings.update"), zValidator("json", UpdateSettingContactValidator, validationHook), (c) => settingController.updateContact(c))
 routes.put("/settings/social", authMiddleware, requirePermission("settings.social.update", "settings.update"), zValidator("json", UpdateSettingSocialValidator, validationHook), (c) => settingController.updateSocial(c))
+
+// Messages
+routes.post("/messages", zValidator("json", CreateMessageValidator, validationHook), (c) => messageController.store(c))
+routes.get("/messages", authMiddleware, requirePermission("messages.view"), (c) => messageController.index(c))
+routes.get("/messages/:id", authMiddleware, requirePermission("messages.view"), (c) => messageController.show(c))
+routes.put("/messages/:id/read", authMiddleware, requirePermission("messages.update"), zValidator("json", UpdateMessageStatusValidator, validationHook), (c) => messageController.updateStatus(c))
+routes.patch("/messages/:id/read", authMiddleware, requirePermission("messages.update"), zValidator("json", UpdateMessageStatusValidator, validationHook), (c) => messageController.updateStatus(c))
+routes.delete("/messages/:id", authMiddleware, requirePermission("messages.delete"), (c) => messageController.destroy(c))
 
 // Upload
 routes.post("/upload", authMiddleware, async (c) => {

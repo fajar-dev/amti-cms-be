@@ -39,6 +39,10 @@ export const defaultPermissions = [
     { name: "settings.contact.update", module: "Settings", description: "Update contact information settings" },
     { name: "settings.social.view", module: "Settings", description: "View social media settings" },
     { name: "settings.social.update", module: "Settings", description: "Update social media settings" },
+    // Messages
+    { name: "messages.view", module: "Messages", description: "View contact messages and inquiries" },
+    { name: "messages.update", module: "Messages", description: "Update message status (read/unread)" },
+    { name: "messages.delete", module: "Messages", description: "Delete messages" },
 ]
 
 export const defaultRoles = [

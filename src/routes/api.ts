@@ -86,11 +86,11 @@ routes.get("/rbac/permissions", authMiddleware, requirePermission("roles.view", 
 
 // Settings
 routes.get("/settings/public", (c) => settingController.getPublic(c))
-routes.get("/settings", authMiddleware, requirePermission("settings.view"), (c) => settingController.show(c))
+routes.get("/settings", authMiddleware, requirePermission("settings.view", "settings.meta.view", "settings.contact.view", "settings.social.view"), (c) => settingController.show(c))
 routes.put("/settings", authMiddleware, requirePermission("settings.update"), zValidator("json", UpdateSettingValidator, validationHook), (c) => settingController.update(c))
-routes.put("/settings/meta", authMiddleware, requirePermission("settings.update"), zValidator("json", UpdateSettingMetaValidator, validationHook), (c) => settingController.updateMeta(c))
-routes.put("/settings/contact", authMiddleware, requirePermission("settings.update"), zValidator("json", UpdateSettingContactValidator, validationHook), (c) => settingController.updateContact(c))
-routes.put("/settings/social", authMiddleware, requirePermission("settings.update"), zValidator("json", UpdateSettingSocialValidator, validationHook), (c) => settingController.updateSocial(c))
+routes.put("/settings/meta", authMiddleware, requirePermission("settings.meta.update", "settings.update"), zValidator("json", UpdateSettingMetaValidator, validationHook), (c) => settingController.updateMeta(c))
+routes.put("/settings/contact", authMiddleware, requirePermission("settings.contact.update", "settings.update"), zValidator("json", UpdateSettingContactValidator, validationHook), (c) => settingController.updateContact(c))
+routes.put("/settings/social", authMiddleware, requirePermission("settings.social.update", "settings.update"), zValidator("json", UpdateSettingSocialValidator, validationHook), (c) => settingController.updateSocial(c))
 
 // Upload
 routes.post("/upload", authMiddleware, async (c) => {

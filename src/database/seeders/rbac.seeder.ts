@@ -33,6 +33,12 @@ export const defaultPermissions = [
     // Settings
     { name: "settings.view", module: "Settings", description: "View system settings" },
     { name: "settings.update", module: "Settings", description: "Update system settings" },
+    { name: "settings.meta.view", module: "Settings", description: "View website meta and branding settings" },
+    { name: "settings.meta.update", module: "Settings", description: "Update website meta and branding settings" },
+    { name: "settings.contact.view", module: "Settings", description: "View contact information settings" },
+    { name: "settings.contact.update", module: "Settings", description: "Update contact information settings" },
+    { name: "settings.social.view", module: "Settings", description: "View social media settings" },
+    { name: "settings.social.update", module: "Settings", description: "Update social media settings" },
 ]
 
 export const defaultRoles = [

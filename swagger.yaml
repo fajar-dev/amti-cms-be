@@ -1990,7 +1990,7 @@ paths:
     get:
       tags: [Settings]
       summary: Retrieve all website settings
-      description: Requires `settings.view` permission.
+      description: Requires `settings.view` permission, or any section view permission (`settings.meta.view`, `settings.contact.view`, `settings.social.view`).
       security:
         - bearerAuth: []
       responses:
@@ -2063,7 +2063,7 @@ paths:
     put:
       tags: [Settings]
       summary: Update website meta and branding settings
-      description: Requires `settings.update` permission.
+      description: Requires `settings.meta.update` (or `settings.update`) permission.
       security:
         - bearerAuth: []
       requestBody:
@@ -2104,7 +2104,7 @@ paths:
     put:
       tags: [Settings]
       summary: Update contact information settings
-      description: Requires `settings.update` permission.
+      description: Requires `settings.contact.update` (or `settings.update`) permission.
       security:
         - bearerAuth: []
       requestBody:
@@ -2145,7 +2145,7 @@ paths:
     put:
       tags: [Settings]
       summary: Update social media links settings
-      description: Requires `settings.update` permission.
+      description: Requires `settings.social.update` (or `settings.update`) permission.
       security:
         - bearerAuth: []
       requestBody:

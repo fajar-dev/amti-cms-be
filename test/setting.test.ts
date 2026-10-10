@@ -111,6 +111,110 @@ describe("Setting - Auth & RBAC", () => {
         expect(status).toBe(403)
         expect(body.success).toBe(false)
     })
+
+    test("GET /api/settings should succeed with granular settings.meta.view permission", async () => {
+        const regRes = await request(app, "/api/auth/register", {
+            method: "POST",
+            body: { name: "Meta View User", email: "metaview@example.com", password: "password123" },
+        })
+        const roleRepo = AppDataSource.getRepository(Role)
+        const permRepo = AppDataSource.getRepository(Permission)
+        const metaViewPerm = await permRepo.findOne({ where: { name: "settings.meta.view" } })
+        const metaViewRole = await roleRepo.save(roleRepo.create({
+            name: "Meta View Role",
+            description: "Meta view only",
+            permissions: metaViewPerm ? [metaViewPerm] : [],
+        }))
+        const userRepo = AppDataSource.getRepository(User)
+        await userRepo.update({ id: regRes.body.data.id }, { roleId: metaViewRole.id })
+
+        const loginRes = await request(app, "/api/auth/login", {
+            method: "POST",
+            body: { email: "metaview@example.com", password: "password123" },
+        })
+
+        const { status, body } = await request(app, "/api/settings", {
+            headers: { Authorization: `Bearer ${loginRes.body.data.accessToken}` },
+        })
+        expect(status).toBe(200)
+        expect(body.success).toBe(true)
+    })
+
+    test("PUT /api/settings/meta should succeed with settings.meta.update but fail without it", async () => {
+        const regRes = await request(app, "/api/auth/register", {
+            method: "POST",
+            body: { name: "Meta Update User", email: "metaupdate@example.com", password: "password123" },
+        })
+        const roleRepo = AppDataSource.getRepository(Role)
+        const permRepo = AppDataSource.getRepository(Permission)
+        const metaUpdatePerm = await permRepo.findOne({ where: { name: "settings.meta.update" } })
+        const metaRole = await roleRepo.save(roleRepo.create({
+            name: "Meta Update Role",
+            description: "Meta update only",
+            permissions: metaUpdatePerm ? [metaUpdatePerm] : [],
+        }))
+        const userRepo = AppDataSource.getRepository(User)
+        await userRepo.update({ id: regRes.body.data.id }, { roleId: metaRole.id })
+
+        const loginRes = await request(app, "/api/auth/login", {
+            method: "POST",
+            body: { email: "metaupdate@example.com", password: "password123" },
+        })
+
+        const updateRes = await request(app, "/api/settings/meta", {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${loginRes.body.data.accessToken}` },
+            body: { siteName: "Perm Meta Site" },
+        })
+        expect(updateRes.status).toBe(200)
+        expect(updateRes.body.success).toBe(true)
+
+        const contactRes = await request(app, "/api/settings/contact", {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${loginRes.body.data.accessToken}` },
+            body: { phone: "+62 812 0000 0000" },
+        })
+        expect(contactRes.status).toBe(403)
+        expect(contactRes.body.success).toBe(false)
+    })
+
+    test("PUT /api/settings/contact and /api/settings/social RBAC enforcement", async () => {
+        const regRes = await request(app, "/api/auth/register", {
+            method: "POST",
+            body: { name: "Contact Social User", email: "contactsocial@example.com", password: "password123" },
+        })
+        const roleRepo = AppDataSource.getRepository(Role)
+        const permRepo = AppDataSource.getRepository(Permission)
+        const contactUpdatePerm = await permRepo.findOne({ where: { name: "settings.contact.update" } })
+        const contactRole = await roleRepo.save(roleRepo.create({
+            name: "Contact Only Role",
+            description: "Contact only",
+            permissions: contactUpdatePerm ? [contactUpdatePerm] : [],
+        }))
+        const userRepo = AppDataSource.getRepository(User)
+        await userRepo.update({ id: regRes.body.data.id }, { roleId: contactRole.id })
+
+        const loginRes = await request(app, "/api/auth/login", {
+            method: "POST",
+            body: { email: "contactsocial@example.com", password: "password123" },
+        })
+
+        const contactRes = await request(app, "/api/settings/contact", {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${loginRes.body.data.accessToken}` },
+            body: { phone: "+62 812 1111 2222" },
+        })
+        expect(contactRes.status).toBe(200)
+        expect(contactRes.body.success).toBe(true)
+
+        const socialRes = await request(app, "/api/settings/social", {
+            method: "PUT",
+            headers: { Authorization: `Bearer ${loginRes.body.data.accessToken}` },
+            body: { facebook: "https://facebook.com/test" },
+        })
+        expect(socialRes.status).toBe(403)
+        expect(socialRes.body.success).toBe(false)
+    })
 })
 
 // ═══════════════════════════════════════════════════════════════════════════

@@ -82,7 +82,11 @@ hono-be/
 │   │
 │   ├── modules/                       # Feature modules
 │   │   ├── auth/                      # Register, login, Google OAuth, reset password
-│   │   └── user/                      # User entity & service
+│   │   ├── user/                      # User management & service
+│   │   ├── content/                   # Category & Article management
+│   │   ├── faq/                       # FAQ management
+│   │   ├── rbac/                      # Role & Permission management
+│   │   └── setting/                   # Website settings (meta, contact, social media)
 │   │
 │   ├── routes/
 │   │   └── api.ts                     # Definisi route

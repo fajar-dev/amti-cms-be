@@ -27,6 +27,8 @@ tags:
     description: Frequently Asked Questions management
   - name: RBAC
     description: Role-Based Access Control and permissions management
+  - name: Settings
+    description: Website configuration, meta SEO, contact information, and social media links
 
 components:
   securitySchemes:
@@ -396,6 +398,84 @@ components:
         permissionIds:
           type: array
           items: { type: integer, example: 1 }
+
+    Setting:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        siteName: { type: string, example: "AMTI" }
+        siteDescription: { type: string, nullable: true, example: "AMTI Content Management System" }
+        metaKeywords: { type: string, nullable: true, example: "amti, cms, content management" }
+        author: { type: string, nullable: true, example: "AMTI Team" }
+        copyright: { type: string, nullable: true, example: "© 2026 AMTI. All rights reserved." }
+        logo: { type: string, nullable: true, example: "users/abc.png" }
+        logoUrl: { type: string, nullable: true, example: "http://localhost:4000/api/proxy?path=users/abc.png" }
+        favicon: { type: string, nullable: true, example: "users/favicon.ico" }
+        faviconUrl: { type: string, nullable: true, example: "http://localhost:4000/api/proxy?path=users/favicon.ico" }
+        ogImage: { type: string, nullable: true, example: "users/og.png" }
+        ogImageUrl: { type: string, nullable: true, example: "http://localhost:4000/api/proxy?path=users/og.png" }
+        phone: { type: string, nullable: true, example: "+62 812 3456 7890" }
+        email: { type: string, nullable: true, example: "info@amti.id" }
+        address: { type: string, nullable: true, example: "Jakarta, Indonesia" }
+        facebook: { type: string, nullable: true, example: "https://facebook.com/amti" }
+        instagram: { type: string, nullable: true, example: "https://instagram.com/amti" }
+        tiktok: { type: string, nullable: true, example: "https://tiktok.com/@amti" }
+        linkedin: { type: string, nullable: true, example: "https://linkedin.com/company/amti" }
+        twitter: { type: string, nullable: true, example: "https://x.com/amti" }
+        youtube: { type: string, nullable: true, example: "https://youtube.com/@amti" }
+        createdAt: { type: string, format: date-time, example: "2026-10-10T08:00:00.000Z" }
+        updatedAt: { type: string, format: date-time, example: "2026-10-10T08:00:00.000Z" }
+
+    UpdateSettingRequest:
+      type: object
+      properties:
+        siteName: { type: string, example: "AMTI" }
+        siteDescription: { type: string, nullable: true, example: "AMTI Content Management System" }
+        metaKeywords: { type: string, nullable: true, example: "amti, cms, content management" }
+        author: { type: string, nullable: true, example: "AMTI Team" }
+        copyright: { type: string, nullable: true, example: "© 2026 AMTI. All rights reserved." }
+        logo: { type: string, nullable: true, example: "users/abc.png" }
+        favicon: { type: string, nullable: true, example: "users/favicon.ico" }
+        ogImage: { type: string, nullable: true, example: "users/og.png" }
+        phone: { type: string, nullable: true, example: "+62 812 3456 7890" }
+        email: { type: string, nullable: true, example: "info@amti.id" }
+        address: { type: string, nullable: true, example: "Jakarta, Indonesia" }
+        facebook: { type: string, nullable: true, example: "https://facebook.com/amti" }
+        instagram: { type: string, nullable: true, example: "https://instagram.com/amti" }
+        tiktok: { type: string, nullable: true, example: "https://tiktok.com/@amti" }
+        linkedin: { type: string, nullable: true, example: "https://linkedin.com/company/amti" }
+        twitter: { type: string, nullable: true, example: "https://x.com/amti" }
+        youtube: { type: string, nullable: true, example: "https://youtube.com/@amti" }
+
+    UpdateSettingMetaRequest:
+      type: object
+      required: [siteName]
+      properties:
+        siteName: { type: string, example: "AMTI" }
+        siteDescription: { type: string, nullable: true, example: "AMTI Content Management System" }
+        metaKeywords: { type: string, nullable: true, example: "amti, cms, content management" }
+        author: { type: string, nullable: true, example: "AMTI Team" }
+        copyright: { type: string, nullable: true, example: "© 2026 AMTI. All rights reserved." }
+        logo: { type: string, nullable: true, example: "users/abc.png" }
+        favicon: { type: string, nullable: true, example: "users/favicon.ico" }
+        ogImage: { type: string, nullable: true, example: "users/og.png" }
+
+    UpdateSettingContactRequest:
+      type: object
+      properties:
+        phone: { type: string, nullable: true, example: "+62 812 3456 7890" }
+        email: { type: string, nullable: true, example: "info@amti.id" }
+        address: { type: string, nullable: true, example: "Jakarta, Indonesia" }
+
+    UpdateSettingSocialRequest:
+      type: object
+      properties:
+        facebook: { type: string, nullable: true, example: "https://facebook.com/amti" }
+        instagram: { type: string, nullable: true, example: "https://instagram.com/amti" }
+        tiktok: { type: string, nullable: true, example: "https://tiktok.com/@amti" }
+        linkedin: { type: string, nullable: true, example: "https://linkedin.com/company/amti" }
+        twitter: { type: string, nullable: true, example: "https://x.com/amti" }
+        youtube: { type: string, nullable: true, example: "https://youtube.com/@amti" }
 
 paths:
   # ── Register ──────────────────────────────────────────────────────────────
@@ -1883,3 +1963,219 @@ paths:
                             additionalProperties:
                               type: array
                               items: { $ref: "#/components/schemas/Permission" }
+
+  # ── Settings ─────────────────────────────────────────────────────────────
+  /settings/public:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [Settings]
+      summary: Retrieve public website settings
+      description: Returns website meta, contact info, and social media URLs without authentication.
+      responses:
+        "200":
+          description: Public settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Setting" }
+
+  /settings:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [Settings]
+      summary: Retrieve all website settings
+      description: Requires `settings.view` permission.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Settings retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Setting" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+    put:
+      tags: [Settings]
+      summary: Update all website settings (bulk)
+      description: Requires `settings.update` permission.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateSettingRequest" }
+      responses:
+        "200":
+          description: Settings updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Setting" }
+        "400":
+          description: Bad request
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+
+  /settings/meta:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    put:
+      tags: [Settings]
+      summary: Update website meta and branding settings
+      description: Requires `settings.update` permission.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateSettingMetaRequest" }
+      responses:
+        "200":
+          description: Website meta settings updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Setting" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+
+  /settings/contact:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    put:
+      tags: [Settings]
+      summary: Update contact information settings
+      description: Requires `settings.update` permission.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateSettingContactRequest" }
+      responses:
+        "200":
+          description: Contact settings updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Setting" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+
+  /settings/social:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    put:
+      tags: [Settings]
+      summary: Update social media links settings
+      description: Requires `settings.update` permission.
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateSettingSocialRequest" }
+      responses:
+        "200":
+          description: Social media settings updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Setting" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "403":
+          description: Forbidden
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }

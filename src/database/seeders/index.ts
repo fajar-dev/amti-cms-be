@@ -3,6 +3,7 @@ import { AppDataSource } from "../../config/database"
 import { seedRbac } from "./rbac.seeder"
 import { seedUsers } from "./user.seeder"
 import { seedSettings } from "./setting.seeder"
+import { seedSampleData } from "./sample-data.seeder"
 
 async function runAllSeeders() {
     console.log("=== Starting Database Seeders ===")
@@ -13,6 +14,7 @@ async function runAllSeeders() {
         await seedRbac(ds)
         await seedUsers(ds)
         await seedSettings(ds)
+        await seedSampleData(ds)
         console.log("=== All seeders executed successfully! ===")
     } catch (error) {
         console.error("Seeder execution failed:", error)

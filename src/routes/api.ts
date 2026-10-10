@@ -26,6 +26,7 @@ import { faqController } from "../modules/faq/faq.module"
 import { rbacController } from "../modules/rbac/rbac.module"
 import { settingController } from "../modules/setting/setting.module"
 import { messageController } from "../modules/message/message.module"
+import { dashboardController } from "../modules/dashboard/dashboard.module"
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 const routes = new Hono()
@@ -101,6 +102,9 @@ routes.get("/messages/:id", authMiddleware, requirePermission("messages.view"), 
 routes.put("/messages/:id/read", authMiddleware, requirePermission("messages.update"), zValidator("json", UpdateMessageStatusValidator, validationHook), (c) => messageController.updateStatus(c))
 routes.patch("/messages/:id/read", authMiddleware, requirePermission("messages.update"), zValidator("json", UpdateMessageStatusValidator, validationHook), (c) => messageController.updateStatus(c))
 routes.delete("/messages/:id", authMiddleware, requirePermission("messages.delete"), (c) => messageController.destroy(c))
+
+// Dashboard
+routes.get("/dashboard/stats", authMiddleware, (c) => dashboardController.getStats(c))
 
 // Upload
 routes.post("/upload", authMiddleware, async (c) => {

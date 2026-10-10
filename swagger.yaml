@@ -31,6 +31,8 @@ tags:
     description: Website configuration, meta SEO, contact information, and social media links
   - name: Messages
     description: Contact inquiries and message management
+  - name: Dashboard
+    description: Aggregated metrics, charts data, and activity statistics for admin dashboard
 
 components:
   securitySchemes:
@@ -507,6 +509,60 @@ components:
       required: [isRead]
       properties:
         isRead: { type: boolean, example: true }
+
+    DashboardSummary:
+      type: object
+      properties:
+        totalArticles: { type: integer, example: 24 }
+        publishedArticles: { type: integer, example: 18 }
+        draftArticles: { type: integer, example: 6 }
+        totalViews: { type: integer, example: 1420 }
+        totalUsers: { type: integer, example: 5 }
+        totalCategories: { type: integer, example: 4 }
+        totalMessages: { type: integer, example: 12 }
+        unreadMessages: { type: integer, example: 3 }
+        totalFaqs: { type: integer, example: 8 }
+
+    DashboardViewsTrend:
+      type: object
+      properties:
+        date: { type: string, example: "2026-10-10" }
+        label: { type: string, example: "10 Okt" }
+        views: { type: integer, example: 45 }
+        articles: { type: integer, example: 2 }
+
+    DashboardCategoryMetric:
+      type: object
+      properties:
+        name: { type: string, example: "Teknologi" }
+        count: { type: integer, example: 8 }
+
+    DashboardMessageTrend:
+      type: object
+      properties:
+        month: { type: string, example: "Okt" }
+        unread: { type: integer, example: 2 }
+        read: { type: integer, example: 10 }
+
+    DashboardStats:
+      type: object
+      properties:
+        summary: { $ref: "#/components/schemas/DashboardSummary" }
+        viewsTrend:
+          type: array
+          items: { $ref: "#/components/schemas/DashboardViewsTrend" }
+        articlesByCategory:
+          type: array
+          items: { $ref: "#/components/schemas/DashboardCategoryMetric" }
+        messagesTrend:
+          type: array
+          items: { $ref: "#/components/schemas/DashboardMessageTrend" }
+        recentArticles:
+          type: array
+          items: { type: object }
+        recentMessages:
+          type: array
+          items: { type: object }
 
 paths:
   # ── Register ──────────────────────────────────────────────────────────────
@@ -2456,4 +2512,31 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ValidationError" }
+
+  # ── Dashboard ────────────────────────────────────────────────────────────
+  /dashboard/stats:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [Dashboard]
+      summary: Retrieve dashboard statistics and metrics
+      description: Returns aggregated metrics, trends (views, articles, messages), and recent activity for the CMS dashboard.
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Dashboard statistics retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/DashboardStats" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
 

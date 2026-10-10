@@ -9,7 +9,7 @@ import { CreateCategoryValidator, UpdateCategoryValidator } from "../modules/con
 import { CreateArticleValidator, UpdateArticleValidator, RecordViewValidator } from "../modules/content/validators/article.validator"
 import { CreateFaqValidator, UpdateFaqValidator } from "../modules/faq/validators/faq.validator"
 import { CreateRoleValidator, UpdateRoleValidator } from "../modules/rbac/validators/role.validator"
-import { UpdateSettingValidator } from "../modules/setting/validators/setting.validator"
+import { UpdateSettingValidator, UpdateSettingMetaValidator, UpdateSettingContactValidator, UpdateSettingSocialValidator } from "../modules/setting/validators/setting.validator"
 
 // ── Middlewares ──────────────────────────────────────────────────────────────
 import { authMiddleware } from "../core/middlewares/auth.middleware"
@@ -88,6 +88,9 @@ routes.get("/rbac/permissions", authMiddleware, requirePermission("roles.view", 
 routes.get("/settings/public", (c) => settingController.getPublic(c))
 routes.get("/settings", authMiddleware, requirePermission("settings.view"), (c) => settingController.show(c))
 routes.put("/settings", authMiddleware, requirePermission("settings.update"), zValidator("json", UpdateSettingValidator, validationHook), (c) => settingController.update(c))
+routes.put("/settings/meta", authMiddleware, requirePermission("settings.update"), zValidator("json", UpdateSettingMetaValidator, validationHook), (c) => settingController.updateMeta(c))
+routes.put("/settings/contact", authMiddleware, requirePermission("settings.update"), zValidator("json", UpdateSettingContactValidator, validationHook), (c) => settingController.updateContact(c))
+routes.put("/settings/social", authMiddleware, requirePermission("settings.update"), zValidator("json", UpdateSettingSocialValidator, validationHook), (c) => settingController.updateSocial(c))
 
 // Upload
 routes.post("/upload", authMiddleware, async (c) => {

@@ -201,4 +201,75 @@ describe("Setting - Operations & Validation", () => {
         expect(status).toBe(422)
         expect(body.success).toBe(false)
     })
+
+    test("PUT /api/settings/meta should update meta fields specifically", async () => {
+        const metaPayload = {
+            siteName: "AMTI Meta Update",
+            siteDescription: "Updated Meta Description",
+            metaKeywords: "meta, keywords, update",
+            author: "New Author",
+            copyright: "© 2026 New Copyright",
+            logo: "uploads/new-logo.png",
+            favicon: "uploads/new-favicon.ico",
+            ogImage: "uploads/new-og.png",
+        }
+
+        const { status, body } = await request(app, "/api/settings/meta", {
+            method: "PUT",
+            headers: authHeaders,
+            body: metaPayload,
+        })
+
+        expect(status).toBe(200)
+        expect(body.success).toBe(true)
+        expect(body.data.siteName).toBe(metaPayload.siteName)
+        expect(body.data.author).toBe(metaPayload.author)
+        expect(body.data.logo).toBe(metaPayload.logo)
+    })
+
+    test("PUT /api/settings/contact should update contact fields specifically", async () => {
+        const contactPayload = {
+            phone: "+62 811 2222 3333",
+            email: "contact-new@amti.id",
+            address: "Jakarta Selatan, Indonesia",
+        }
+
+        const { status, body } = await request(app, "/api/settings/contact", {
+            method: "PUT",
+            headers: authHeaders,
+            body: contactPayload,
+        })
+
+        expect(status).toBe(200)
+        expect(body.success).toBe(true)
+        expect(body.data.phone).toBe(contactPayload.phone)
+        expect(body.data.email).toBe(contactPayload.email)
+        expect(body.data.address).toBe(contactPayload.address)
+    })
+
+    test("PUT /api/settings/social should update social media fields specifically", async () => {
+        const socialPayload = {
+            facebook: "https://facebook.com/new-amti",
+            instagram: "https://instagram.com/new-amti",
+            tiktok: "https://tiktok.com/@new-amti",
+            linkedin: "https://linkedin.com/company/new-amti",
+            twitter: "https://x.com/new-amti",
+            youtube: "https://youtube.com/@new-amti",
+        }
+
+        const { status, body } = await request(app, "/api/settings/social", {
+            method: "PUT",
+            headers: authHeaders,
+            body: socialPayload,
+        })
+
+        expect(status).toBe(200)
+        expect(body.success).toBe(true)
+        expect(body.data.facebook).toBe(socialPayload.facebook)
+        expect(body.data.instagram).toBe(socialPayload.instagram)
+        expect(body.data.tiktok).toBe(socialPayload.tiktok)
+        expect(body.data.linkedin).toBe(socialPayload.linkedin)
+        expect(body.data.twitter).toBe(socialPayload.twitter)
+        expect(body.data.youtube).toBe(socialPayload.youtube)
+    })
 })

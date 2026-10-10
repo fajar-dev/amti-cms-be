@@ -10,7 +10,7 @@ export class SettingService {
         return await this.repository.get()
     }
 
-    async updateSettings(data: UpdateSettingValidator): Promise<Setting> {
+    async updateSettings(data: Partial<UpdateSettingValidator>): Promise<Setting> {
         const payload: Partial<Setting> = { ...data }
 
         if (data.logo !== undefined) {

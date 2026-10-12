@@ -34,7 +34,7 @@ export class MessageService {
 
     async updateStatus(id: number, isRead: boolean): Promise<Message> {
         const message = await this.getById(id)
-        message.isRead = isRead
+        this.repository.merge(message, { isRead })
         return await this.repository.save(message)
     }
 

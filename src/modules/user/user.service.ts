@@ -1,19 +1,19 @@
-import { User } from "./entities/user.entity"
-import { NotFoundException, BadRequestException } from "../../core/exceptions/base"
 import { EntityManager } from "typeorm"
-import { IUserRepository, UserListFilters } from "./interfaces/user.repository.interface"
+import { NotFoundException, BadRequestException } from "../../core/exceptions/base"
+import { SortOrder } from "../../core/interfaces/base.repository.interface"
 import { hashPassword } from "../../core/helpers/hash"
 import { minio } from "../../core/helpers/minio"
-import { SortOrder } from "../../core/interfaces/base.repository.interface"
+import { User } from "./entities/user.entity"
+import { IUserRepository, UserListFilters, UserListRow } from "./interfaces/user.repository.interface"
 
 export class UserService {
     constructor(private readonly repository: IUserRepository) {}
 
-    async getAll(page: number, limit: number, q: string, filters: UserListFilters = {}, sortBy?: string, order?: SortOrder): Promise<{ data: any[]; total: number }> {
+    async getAll(page: number, limit: number, q: string, filters: UserListFilters = {}, sortBy?: string, order?: SortOrder): Promise<{ data: User[]; total: number }> {
         return await this.repository.findAll(page, limit, q, filters, sortBy, order)
     }
 
-    async getAllList(isActiveOnly = true): Promise<any[]> {
+    async getAllList(isActiveOnly = true): Promise<UserListRow[]> {
         return await this.repository.findAllList(isActiveOnly)
     }
 

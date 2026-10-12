@@ -1,16 +1,8 @@
 import { Article } from "../entities/article.entity"
-import { minio } from "../../../core/helpers/minio"
+import { resolveStorageUrl } from "../../../core/helpers/storage-url"
 import { CategorySerializer } from "./category.serialize"
 
 export class ArticleSerializer {
-    private static async resolveCoverUrl(cover?: string | null): Promise<string | null> {
-        if (!cover) return null
-        if (cover.startsWith("http://") || cover.startsWith("https://")) {
-            return cover
-        }
-        return await minio.getPresignedUrl(cover)
-    }
-
     static async single(article: Article) {
         return {
             id: article.id,
@@ -28,7 +20,7 @@ export class ArticleSerializer {
             title: article.title,
             slug: article.slug,
             cover: article.cover || null,
-            coverUrl: await this.resolveCoverUrl(article.cover),
+            coverUrl: await resolveStorageUrl(article.cover, { passthroughAbsolute: true }),
             content: article.content,
             tags: Array.isArray(article.tags) ? article.tags : [],
             status: article.status,

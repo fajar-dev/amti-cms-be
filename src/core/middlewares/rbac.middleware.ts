@@ -1,10 +1,10 @@
-import { Context, Next } from 'hono'
-import { User } from '../../modules/user/entities/user.entity'
-import { ForbiddenException, UnauthorizedException } from '../exceptions/base'
+import { Context, Next } from "hono"
+import { User } from "../../modules/user/entities/user.entity"
+import { ForbiddenException, UnauthorizedException } from "../exceptions/base"
 
 export const requirePermission = (...permissions: string[]) => {
     return async (c: Context, next: Next) => {
-        const user = c.get('user') as User | undefined
+        const user = c.get("user") as User | undefined
         if (!user) {
             throw new UnauthorizedException("Unauthorized access")
         }
@@ -26,7 +26,7 @@ export const requirePermission = (...permissions: string[]) => {
 
 export const requireRole = (...roles: (number | string)[]) => {
     return async (c: Context, next: Next) => {
-        const user = c.get('user') as User | undefined
+        const user = c.get("user") as User | undefined
         if (!user) {
             throw new UnauthorizedException("Unauthorized access")
         }

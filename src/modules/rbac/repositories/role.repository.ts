@@ -1,6 +1,7 @@
 import { Repository } from "typeorm"
 import { AppDataSource } from "../../../config/database"
 import { Role } from "../entities/role.entity"
+import { User } from "../../user/entities/user.entity"
 import { IRoleRepository } from "../interfaces/role.repository.interface"
 import { SortOrder } from "../../../core/interfaces/base.repository.interface"
 
@@ -17,7 +18,7 @@ export class TypeOrmRoleRepository implements IRoleRepository {
         this.repository = AppDataSource.getRepository(Role)
     }
 
-    async findAll(page: number, limit: number, q?: string, sortBy?: string, order: SortOrder = "ASC"): Promise<{ data: any[]; total: number }> {
+    async findAll(page: number, limit: number, q?: string, sortBy?: string, order: SortOrder = "ASC"): Promise<{ data: Role[]; total: number }> {
         const offset = (page - 1) * limit
 
         const query = this.repository.createQueryBuilder("role")
@@ -75,7 +76,6 @@ export class TypeOrmRoleRepository implements IRoleRepository {
     }
 
     async countUsersByRoleId(roleId: number): Promise<number> {
-        const userRepo = AppDataSource.getRepository("User")
-        return await userRepo.count({ where: { roleId } })
+        return await AppDataSource.getRepository(User).count({ where: { roleId } })
     }
 }

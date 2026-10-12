@@ -21,7 +21,7 @@ class MinioHelper {
         const exists = await minioClient.bucketExists(bucket)
         if (!exists) {
             await minioClient.makeBucket(bucket)
-            logger.info('MinIO bucket created', { bucket })
+            logger.info("MinIO bucket created", { bucket })
         }
     }
 
@@ -40,7 +40,7 @@ class MinioHelper {
             "Content-Type": contentType,
         })
 
-        logger.info('MinIO object uploaded', { bucket, objectName, contentType, size: buffer.length })
+        logger.info("MinIO object uploaded", { bucket, objectName, contentType, size: buffer.length })
         return objectName
     }
 
@@ -93,7 +93,7 @@ class MinioHelper {
      */
     async delete(objectName: string, bucket: string = BUCKET): Promise<void> {
         await minioClient.removeObject(bucket, objectName)
-        logger.info('MinIO object deleted', { bucket, objectName })
+        logger.info("MinIO object deleted", { bucket, objectName })
     }
 
     /**
@@ -141,11 +141,11 @@ class MinioHelper {
      */
     sanitizePath(urlOrPath: string | null | undefined, bucket: string = BUCKET): string | null {
         if (!urlOrPath) return null
-        
+
         let decoded = urlOrPath
         try {
             // Recursively decode URL-encoded segments if nested
-            while (decoded && decoded.includes('%')) {
+            while (decoded && decoded.includes("%")) {
                 const next = decodeURIComponent(decoded)
                 if (next === decoded) break
                 decoded = next
@@ -162,12 +162,12 @@ class MinioHelper {
         }
 
         // Strip query parameters
-        if (decoded.includes('?')) {
-            decoded = decoded.split('?')[0]
+        if (decoded.includes("?")) {
+            decoded = decoded.split("?")[0]
         }
 
         // Clean up leading/trailing slashes
-        decoded = decoded.replace(/^\/+|\/+$/g, '')
+        decoded = decoded.replace(/^\/+|\/+$/g, "")
 
         return decoded || null
     }

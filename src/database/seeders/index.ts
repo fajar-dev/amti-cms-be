@@ -1,27 +1,28 @@
 import "reflect-metadata"
 import { AppDataSource } from "../../config/database"
+import { logger } from "../../core/helpers/logger"
 import { seedRbac } from "./rbac.seeder"
 import { seedUsers } from "./user.seeder"
 import { seedSettings } from "./setting.seeder"
 import { seedSampleData } from "./sample-data.seeder"
 
 async function runAllSeeders() {
-    console.log("=== Starting Database Seeders ===")
+    logger.info("=== Starting Database Seeders ===")
     const ds = await AppDataSource.initialize()
-    console.log("Database connection established.\n")
+    logger.info("Database connection established")
 
     try {
         await seedRbac(ds)
         await seedUsers(ds)
         await seedSettings(ds)
         await seedSampleData(ds)
-        console.log("=== All seeders executed successfully! ===")
+        logger.info("=== All seeders executed successfully! ===")
     } catch (error) {
-        console.error("Seeder execution failed:", error)
+        logger.error("Seeder execution failed", { err: error })
         process.exitCode = 1
     } finally {
         await ds.destroy()
-        console.log("Database connection closed.")
+        logger.info("Database connection closed.")
     }
 }
 

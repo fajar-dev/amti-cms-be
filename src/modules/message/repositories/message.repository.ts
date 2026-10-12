@@ -8,8 +8,8 @@ const SORTABLE_COLUMNS: Record<string, string> = {
     name: "message.name",
     email: "message.email",
     subject: "message.subject",
-    isRead: "message.is_read",
-    createdAt: "message.created_at",
+    isRead: "message.isRead",
+    createdAt: "message.createdAt",
 }
 
 export class TypeOrmMessageRepository implements IMessageRepository {
@@ -36,7 +36,7 @@ export class TypeOrmMessageRepository implements IMessageRepository {
         }
 
         if (filters.isRead !== undefined) {
-            query.andWhere("message.is_read = :isRead", { isRead: filters.isRead })
+            query.andWhere("message.isRead = :isRead", { isRead: filters.isRead })
         }
 
         const total = await query.getCount()
@@ -44,7 +44,7 @@ export class TypeOrmMessageRepository implements IMessageRepository {
         if (sortBy && SORTABLE_COLUMNS[sortBy]) {
             query.orderBy(SORTABLE_COLUMNS[sortBy], order)
         } else {
-            query.orderBy("message.created_at", order).addOrderBy("message.id", "DESC")
+            query.orderBy("message.createdAt", order).addOrderBy("message.id", "DESC")
         }
 
         const data = await query

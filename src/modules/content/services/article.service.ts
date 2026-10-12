@@ -1,22 +1,14 @@
-import { Article } from "../entities/article.entity"
-import { ArticleView } from "../entities/article-view.entity"
-import { IArticleRepository, ArticleListFilters } from "../interfaces/article.repository.interface"
-import { ICategoryRepository } from "../interfaces/category.repository.interface"
-import { IArticleViewRepository } from "../interfaces/article-view.repository.interface"
-import { ArticleStatus } from "../enum/article-status.enum"
+import crypto from "crypto"
 import { NotFoundException, BadRequestException } from "../../../core/exceptions/base"
 import { SortOrder } from "../../../core/interfaces/base.repository.interface"
 import { minio } from "../../../core/helpers/minio"
-import crypto from "crypto"
-
-function slugify(text: string): string {
-    return text
-        .toString()
-        .toLowerCase()
-        .trim()
-        .replace(/[\s\W-]+/g, "-")
-        .replace(/^-+|-+$/g, "")
-}
+import { slugify } from "../../../core/helpers/slug"
+import { Article } from "../entities/article.entity"
+import { ArticleView } from "../entities/article-view.entity"
+import { ArticleStatus } from "../enum/article-status.enum"
+import { IArticleRepository, ArticleListFilters } from "../interfaces/article.repository.interface"
+import { ICategoryRepository } from "../interfaces/category.repository.interface"
+import { IArticleViewRepository } from "../interfaces/article-view.repository.interface"
 
 export interface CreateArticleDTO {
     title: string
@@ -102,7 +94,7 @@ export class ArticleService {
         }
     }
 
-    async create(data: CreateArticleDTO): Promise<Article> {
+    async create(data: CreateArticleDTO, currentUserId?: number): Promise<Article> {
         if (data.categoryId) {
             const category = await this.categoryRepository.findById(data.categoryId)
             if (!category) {
@@ -119,7 +111,7 @@ export class ArticleService {
         return await this.articleRepository.save({
             title: data.title,
             slug,
-            authorId: data.authorId ?? null,
+            authorId: data.authorId ?? currentUserId ?? null,
             categoryId: data.categoryId ?? null,
             cover: sanitizedCover,
             content: data.content,
@@ -133,51 +125,29 @@ export class ArticleService {
 
     async update(id: number, data: UpdateArticleDTO): Promise<Article> {
         const article = await this.getById(id)
+        const patch: Partial<Article> = { ...data }
 
-        if (data.authorId !== undefined) {
-            article.authorId = data.authorId
-        }
-
-        if (data.categoryId !== undefined) {
-            if (data.categoryId !== null) {
-                const category = await this.categoryRepository.findById(data.categoryId)
-                if (!category) {
-                    throw new BadRequestException("Category not found")
-                }
+        // Field yang butuh logika khusus dihitung dulu; sisanya diterapkan lewat merge().
+        if (data.categoryId !== undefined && data.categoryId !== null) {
+            const category = await this.categoryRepository.findById(data.categoryId)
+            if (!category) {
+                throw new BadRequestException("Category not found")
             }
-            article.categoryId = data.categoryId
         }
 
-        if (data.title !== undefined) {
-            article.title = data.title
+        if (patch.slug !== undefined && patch.slug !== article.slug) {
+            patch.slug = await this.generateUniqueSlug(patch.slug, id)
         }
 
-        if (data.slug !== undefined && data.slug !== article.slug) {
-            article.slug = await this.generateUniqueSlug(data.slug, id)
+        if (patch.cover !== undefined) {
+            patch.cover = patch.cover ? (minio.sanitizePath(patch.cover) ?? patch.cover) : null
         }
 
-        if (data.cover !== undefined) {
-            article.cover = data.cover ? (minio.sanitizePath(data.cover) ?? data.cover) : null
+        if (data.status === ArticleStatus.PUBLISH && !article.publishedAt) {
+            article.publishedAt = new Date()
         }
 
-        if (data.content !== undefined) {
-            article.content = data.content
-        }
-
-        if (data.tags !== undefined) {
-            article.tags = data.tags
-        }
-
-        if (data.status !== undefined) {
-            if (data.status === ArticleStatus.PUBLISH && !article.publishedAt) {
-                article.publishedAt = new Date()
-            }
-            article.status = data.status
-        }
-
-        if (data.description !== undefined) {
-            article.description = data.description
-        }
+        this.articleRepository.merge(article, patch)
 
         return await this.articleRepository.save(article)
     }

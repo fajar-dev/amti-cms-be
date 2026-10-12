@@ -2,7 +2,7 @@ import { Role } from "../entities/role.entity"
 import { SortOrder } from "../../../core/interfaces/base.repository.interface"
 
 export interface IRoleRepository {
-    findAll(page: number, limit: number, q?: string, sortBy?: string, order?: SortOrder): Promise<{ data: any[]; total: number }>
+    findAll(page: number, limit: number, q?: string, sortBy?: string, order?: SortOrder): Promise<{ data: Role[]; total: number }>
     findAllList(): Promise<Role[]>
     findById(id: number): Promise<Role | null>
     findByName(name: string): Promise<Role | null>

@@ -14,7 +14,7 @@ import { config } from "./config"
 
 /**
  * TypeORM Database Configuration
- * 
+ *
  * Access via `AppDataSource` (default) atau `getDataSource()`.
  * Untuk testing, gunakan `setDataSource()` untuk override ke test database.
  */

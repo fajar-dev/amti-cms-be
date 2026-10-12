@@ -1,7 +1,7 @@
 import { EntityManager, Repository } from "typeorm"
 import { AppDataSource } from "../../../config/database"
 import { User } from "../entities/user.entity"
-import { IUserRepository, UserListFilters } from "../interfaces/user.repository.interface"
+import { IUserRepository, UserListFilters, UserListRow } from "../interfaces/user.repository.interface"
 import { SortOrder } from "../../../core/interfaces/base.repository.interface"
 
 const SORTABLE_COLUMNS: Record<string, string> = {
@@ -19,7 +19,7 @@ export class TypeOrmUserRepository implements IUserRepository {
         this.repository = AppDataSource.getRepository(User)
     }
 
-    async findAll(page: number, limit: number, q: string, filters: UserListFilters = {}, sortBy?: string, order: SortOrder = "DESC"): Promise<{ data: any[]; total: number }> {
+    async findAll(page: number, limit: number, q: string, filters: UserListFilters = {}, sortBy?: string, order: SortOrder = "DESC"): Promise<{ data: User[]; total: number }> {
         const offset = (page - 1) * limit
 
         const query = this.repository.createQueryBuilder("user")
@@ -49,19 +49,19 @@ export class TypeOrmUserRepository implements IUserRepository {
         return { data, total }
     }
 
-    async findAllList(isActiveOnly = true): Promise<any[]> {
+    async findAllList(isActiveOnly = true): Promise<UserListRow[]> {
         const query = this.repository.createQueryBuilder("user")
             .select([
                 "user.id AS id",
                 "user.name AS name",
                 "user.photo AS photo",
                 "user.email AS email",
-                "user.is_active AS isActive",
+                "user.isActive AS isActive",
             ])
             .orderBy("user.name", "ASC")
 
         if (isActiveOnly) {
-            query.where("user.is_active = :isActive", { isActive: true })
+            query.where("user.isActive = :isActive", { isActive: true })
         }
 
         return await query.getRawMany()

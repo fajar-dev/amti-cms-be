@@ -1,6 +1,6 @@
 import { Context } from "hono"
 import { DashboardService } from "./dashboard.service"
-import { DashboardSerializer } from "./serializers/dashboard.serializer"
+import { DashboardSerializer } from "./serializers/dashboard.serialize"
 import { ApiResponse } from "../../core/helpers/response"
 
 export class DashboardController {

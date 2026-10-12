@@ -6,7 +6,7 @@ import { SortOrder } from "../../../core/interfaces/base.repository.interface"
 
 const SORTABLE_COLUMNS: Record<string, string> = {
     name: "category.name",
-    createdAt: "category.created_at",
+    createdAt: "category.createdAt",
 }
 
 export class TypeOrmCategoryRepository implements ICategoryRepository {

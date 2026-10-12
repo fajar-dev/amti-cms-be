@@ -1,11 +1,12 @@
 import { Context } from "hono"
+import { ApiResponse } from "../../../core/helpers/response"
+import { resolveClientIp } from "../../../core/helpers/client-ip"
+import { BadRequestException } from "../../../core/exceptions/base"
 import { ArticleService } from "../services/article.service"
 import { ArticleSerializer } from "../serializers/article.serialize"
 import { ArticleViewSerializer } from "../serializers/article-view.serialize"
-import { ApiResponse } from "../../../core/helpers/response"
-import { BadRequestException } from "../../../core/exceptions/base"
 import { ArticleStatus } from "../enum/article-status.enum"
-import { RecordViewValidator } from "../validators/article.validator"
+import type { CreateArticleValidator, RecordViewValidator } from "../validators/article.validator"
 
 export class ArticleController {
     constructor(private readonly service: ArticleService) { }
@@ -50,12 +51,9 @@ export class ArticleController {
     }
 
     async store(c: Context) {
-        const data = c.req.valid("json" as never) as any
-        const user = c.get("user") as any
-        if (!data.authorId && user?.id) {
-            data.authorId = user.id
-        }
-        const article = await this.service.create(data)
+        const data = c.req.valid("json" as never) as CreateArticleValidator
+        const user = c.get("user") as { id: number } | undefined
+        const article = await this.service.create(data, user?.id)
         const serialized = await ArticleSerializer.single(article)
         return ApiResponse.success(c, serialized, "Article created successfully", 201)
     }
@@ -76,10 +74,8 @@ export class ArticleController {
 
     async recordView(c: Context) {
         const id = Number(c.req.param("id"))
-        const rawBody = await c.req.json().catch(() => ({}))
-        const parsed = RecordViewValidator.safeParse(rawBody)
-        const body = parsed.success ? parsed.data : {}
-        const ipAddress = c.req.header("x-forwarded-for")?.split(",")[0]?.trim() || c.req.header("cf-connecting-ip") || null
+        const body = c.req.valid("json" as never) as RecordViewValidator
+        const ipAddress = resolveClientIp(c) ?? null
         const userAgent = c.req.header("user-agent") || null
         const referrer = body.referrer || c.req.header("referer") || null
         const authUser = c.get("user") as { id: number } | undefined

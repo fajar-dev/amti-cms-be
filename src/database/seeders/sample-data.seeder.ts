@@ -6,6 +6,7 @@ import { Message } from "../../modules/message/entities/message.entity"
 import { Faq } from "../../modules/faq/entities/faq.entity"
 import { User } from "../../modules/user/entities/user.entity"
 import { ArticleStatus } from "../../modules/content/enum/article-status.enum"
+import { logger } from "../../core/helpers/logger"
 
 export async function seedSampleData(ds: DataSource) {
     const categoryRepo = ds.getRepository(Category)
@@ -15,7 +16,7 @@ export async function seedSampleData(ds: DataSource) {
     const faqRepo = ds.getRepository(Faq)
     const userRepo = ds.getRepository(User)
 
-    console.log("Seeding sample categories, articles, views, and messages...")
+    logger.info("Seeding sample categories, articles, views, and messages...")
 
     const author = await userRepo.findOne({ where: {} })
 
@@ -215,15 +216,20 @@ export async function seedSampleData(ds: DataSource) {
         }
     }
 
-    console.log("Sample data seeded successfully!")
+    logger.info("Sample data seeded successfully!")
 }
 
 if (import.meta.main) {
-    const { AppDataSource } = await import("../../config/database")
-    const ds = await AppDataSource.initialize()
-    try {
-        await seedSampleData(ds)
-    } finally {
-        await ds.destroy()
-    }
+    ; (async () => {
+        const { AppDataSource } = await import("../../config/database")
+        const ds = await AppDataSource.initialize()
+        try {
+            await seedSampleData(ds)
+        } finally {
+            await ds.destroy()
+        }
+    })().catch((err) => {
+        logger.error("Sample data seeder failed", { err })
+        process.exit(1)
+    })
 }

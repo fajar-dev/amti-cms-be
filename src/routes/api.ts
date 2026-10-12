@@ -1,6 +1,5 @@
 import { Hono } from "hono"
 import { zValidator } from "@hono/zod-validator"
-import crypto from "crypto"
 
 // ── Validators ──────────────────────────────────────────────────────────────
 import { RegisterValidator, LoginValidator, ForgotPasswordValidator, ResetPasswordValidator, RefreshTokenValidator, GoogleLoginValidator, UpdateProfileValidator, UpdatePasswordValidator } from "../modules/auth/validators/auth.validator"
@@ -15,8 +14,8 @@ import { CreateMessageValidator, UpdateMessageStatusValidator } from "../modules
 // ── Middlewares ──────────────────────────────────────────────────────────────
 import { authMiddleware } from "../core/middlewares/auth.middleware"
 import { requirePermission } from "../core/middlewares/rbac.middleware"
+import { optionalJsonBody } from "../core/middlewares/optional-json.middleware"
 import { validationHook } from "../core/helpers/validator"
-import { BadRequestException } from "../core/exceptions/base"
 
 // ── Modules (controllers wired with their dependencies) ──────────────────────
 import { authController } from "../modules/auth/auth.module"
@@ -27,6 +26,7 @@ import { rbacController } from "../modules/rbac/rbac.module"
 import { settingController } from "../modules/setting/setting.module"
 import { messageController } from "../modules/message/message.module"
 import { dashboardController } from "../modules/dashboard/dashboard.module"
+import { storageController } from "../modules/storage/storage.module"
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 const routes = new Hono()
@@ -68,7 +68,7 @@ routes.get("/content/articles/slug/:slug", (c) => articleController.showBySlug(c
 routes.post("/content/articles", authMiddleware, requirePermission("articles.create"), zValidator("json", CreateArticleValidator, validationHook), (c) => articleController.store(c))
 routes.put("/content/articles/:id", authMiddleware, requirePermission("articles.update"), zValidator("json", UpdateArticleValidator, validationHook), (c) => articleController.update(c))
 routes.delete("/content/articles/:id", authMiddleware, requirePermission("articles.delete"), (c) => articleController.destroy(c))
-routes.post("/content/articles/:id/view", (c) => articleController.recordView(c))
+routes.post("/content/articles/:id/view", optionalJsonBody(RecordViewValidator), (c) => articleController.recordView(c))
 routes.get("/content/articles/:id/views", authMiddleware, requirePermission("articles.view"), (c) => articleController.views(c))
 
 // FAQ
@@ -111,33 +111,8 @@ routes.get("/dashboard/messages-trend", authMiddleware, (c) => dashboardControll
 routes.get("/dashboard/recent-articles", authMiddleware, (c) => dashboardController.getRecentArticles(c))
 routes.get("/dashboard/recent-messages", authMiddleware, (c) => dashboardController.getRecentMessages(c))
 
-// Upload
-routes.post("/upload", authMiddleware, async (c) => {
-    const body = await c.req.parseBody()
-    const file = body["file"]
-
-    if (!file || !(file instanceof File)) {
-        throw new BadRequestException("No file uploaded or invalid file")
-    }
-
-    const buffer = Buffer.from(await file.arrayBuffer())
-    const extension = file.name.split(".").pop() || "jpg"
-    const objectName = `users/${crypto.randomUUID()}.${extension}`
-
-    const { minio } = await import("../core/helpers/minio")
-    await minio.upload(objectName, buffer, file.type)
-
-    const { ApiResponse } = await import("../core/helpers/response")
-    return ApiResponse.success(c, { path: objectName }, "File uploaded successfully")
-})
-
-// Proxy MinIO
-routes.get("/proxy", async (c) => {
-    const path = c.req.query("path")
-    if (!path) return c.json({ message: "Missing 'path' query parameter" }, 400)
-
-    const { minio } = await import("../core/helpers/minio")
-    return minio.proxyHandler(path)
-})
+// Storage
+routes.post("/upload", authMiddleware, (c) => storageController.upload(c))
+routes.get("/proxy", (c) => storageController.proxy(c))
 
 export default routes

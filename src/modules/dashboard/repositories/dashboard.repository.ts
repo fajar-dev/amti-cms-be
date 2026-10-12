@@ -61,7 +61,7 @@ export class TypeOrmDashboardRepository implements IDashboardRepository {
             this.faqRepo.count(),
             this.articleRepo
                 .createQueryBuilder("a")
-                .select("SUM(a.views_count)", "sum")
+                .select("SUM(a.viewsCount)", "sum")
                 .getRawOne(),
         ])
 

@@ -16,3 +16,6 @@ export const UpdateRoleValidator = z.object({
     description: z.string().max(500).optional().nullable(),
     permissionIds: z.array(z.number().int().positive()).optional(),
 })
+
+export type CreateRoleValidator = z.infer<typeof CreateRoleValidator>
+export type UpdateRoleValidator = z.infer<typeof UpdateRoleValidator>

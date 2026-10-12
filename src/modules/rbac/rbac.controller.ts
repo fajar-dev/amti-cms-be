@@ -20,10 +20,7 @@ export class RbacController {
 
     async list(c: Context) {
         const roles = await this.service.getAllRolesList()
-        return ApiResponse.success(c, roles.map(r => ({
-            id: r.id,
-            name: r.name,
-        })), "Roles list retrieved successfully")
+        return ApiResponse.success(c, RoleSerializer.options(roles), "Roles list retrieved successfully")
     }
 
     async show(c: Context) {
@@ -53,13 +50,9 @@ export class RbacController {
 
     async permissions(c: Context) {
         const { flat, grouped } = await this.service.getPermissions()
-        const serializedGrouped: Record<string, any[]> = {}
-        for (const [moduleName, perms] of Object.entries(grouped)) {
-            serializedGrouped[moduleName] = PermissionSerializer.collection(perms)
-        }
         return ApiResponse.success(c, {
             flat: PermissionSerializer.collection(flat),
-            grouped: serializedGrouped,
+            grouped: PermissionSerializer.collectionByModule(grouped),
         }, "Permissions retrieved successfully")
     }
 }

@@ -1,13 +1,8 @@
 import { Role } from "../entities/role.entity"
 import { PermissionSerializer } from "./permission.serialize"
-import { minio } from "../../../core/helpers/minio"
+import { resolveStorageUrl } from "../../../core/helpers/storage-url"
 
 export class RoleSerializer {
-    private static async resolvePhotoUrl(photo?: string | null): Promise<string | null> {
-        if (!photo) return null
-        return await minio.getPresignedUrl(photo)
-    }
-
     static async single(role: Role) {
         const users = role.users
             ? await Promise.all(
@@ -15,7 +10,7 @@ export class RoleSerializer {
                     id: u.id,
                     name: u.name,
                     email: u.email,
-                    photo: await this.resolvePhotoUrl(u.photo),
+                    photo: await resolveStorageUrl(u.photo),
                 }))
             )
             : []
@@ -35,5 +30,17 @@ export class RoleSerializer {
 
     static async collection(roles: Role[]) {
         return Promise.all(roles.map(r => this.single(r)))
+    }
+
+    /** Bentuk ringkas untuk dropdown / pemilih peran. */
+    static option(role: Role) {
+        return {
+            id: role.id,
+            name: role.name,
+        }
+    }
+
+    static options(roles: Role[]) {
+        return roles.map(r => this.option(r))
     }
 }

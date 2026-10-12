@@ -4,6 +4,7 @@ import { AppDataSource } from "../../config/database"
 import { User } from "../../modules/user/entities/user.entity"
 import { Role } from "../../modules/rbac/entities/role.entity"
 import { hashPassword } from "../../core/helpers/hash"
+import { logger } from "../../core/helpers/logger"
 
 interface SeedUserData {
     name: string
@@ -41,7 +42,7 @@ export async function seedUsers(ds: DataSource) {
     const userRepo = ds.getRepository(User)
     const roleRepo = ds.getRepository(Role)
 
-    console.log("Seeding users...")
+    logger.info("Seeding users...")
 
     for (const item of seedUsersList) {
         const role = await roleRepo.findOne({ where: { name: item.roleName } })
@@ -58,29 +59,29 @@ export async function seedUsers(ds: DataSource) {
                 roleId: role ? role.id : null,
             })
             await userRepo.save(user)
-            console.log(`  + User created: ${user.email} (Role: ${item.roleName})`)
+            logger.info("User created", { email: user.email, role: item.roleName })
         } else {
             user.name = item.name
             user.isActive = item.isActive
             user.roleId = role ? role.id : null
             await userRepo.save(user)
-            console.log(`  ~ User updated: ${user.email} (Role: ${item.roleName})`)
+            logger.info("User updated", { email: user.email, role: item.roleName })
         }
     }
 
-    console.log("User seeding complete.\n")
+    logger.info("User seeding complete")
 }
 
 // Standalone execution
 if (import.meta.main) {
     AppDataSource.initialize()
         .then(async (ds) => {
-            console.log("Connected to database")
+            logger.info("Connected to database")
             await seedUsers(ds)
             await ds.destroy()
         })
         .catch((err) => {
-            console.error("User seeder failed:", err)
+            logger.error("User seeder failed", { err })
             process.exit(1)
         })
 }

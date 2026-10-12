@@ -1,17 +1,12 @@
 import { User } from "../entities/user.entity"
-import { minio } from "../../../core/helpers/minio"
+import { resolveStorageUrl } from "../../../core/helpers/storage-url"
 
 export class UserSerializer {
-    private static async resolvePhotoUrl(photo?: string | null): Promise<string | null> {
-        if (!photo) return null
-        return await minio.getPresignedUrl(photo)
-    }
-
     static async single(user: User) {
         return {
             id: user.id,
             name: user.name,
-            photo: await this.resolvePhotoUrl(user.photo),
+            photo: await resolveStorageUrl(user.photo),
             email: user.email,
             isActive: Boolean(user.isActive),
             roleId: user.roleId ?? user.role?.id ?? null,

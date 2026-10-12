@@ -1,17 +1,17 @@
-import { Context, Next } from 'hono'
-import { verify } from 'hono/jwt'
-import { config } from '../../config/config'
-import { AppDataSource } from '../../config/database'
-import { User } from '../../modules/user/entities/user.entity'
-import { UnauthorizedException } from '../exceptions/base'
+import { Context, Next } from "hono"
+import { verify } from "hono/jwt"
+import { config } from "../../config/config"
+import { AppDataSource } from "../../config/database"
+import { User } from "../../modules/user/entities/user.entity"
+import { UnauthorizedException } from "../exceptions/base"
 
 export const authMiddleware = async (c: Context, next: Next) => {
-    const authHeader = c.req.header('Authorization')
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    const authHeader = c.req.header("Authorization")
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
         throw new UnauthorizedException("Missing or invalid authorization header")
     }
 
-    const token = authHeader.split(' ')[1]
+    const token = authHeader.split(" ")[1]
     let user: User | null = null
 
     try {
@@ -34,6 +34,6 @@ export const authMiddleware = async (c: Context, next: Next) => {
         throw new UnauthorizedException("User account is inactive")
     }
 
-    c.set('user', user)
+    c.set("user", user)
     await next()
 }

@@ -1,6 +1,6 @@
-import { HTTPException } from 'hono/http-exception'
-import { ContentfulStatusCode } from 'hono/utils/http-status'
-import { ZodError } from 'zod'
+import { HTTPException } from "hono/http-exception"
+import { ContentfulStatusCode } from "hono/utils/http-status"
+import { ZodError } from "zod"
 
 /**
  * Base Application Exception Class
@@ -10,8 +10,8 @@ export class BaseException extends HTTPException {
     public context: any
 
     constructor(
-        message: string, 
-        status: number = 400, 
+        message: string,
+        status: number = 400,
         errors: any = null
     ) {
         super(status as ContentfulStatusCode, { message })
@@ -37,6 +37,12 @@ export class UnauthorizedException extends BaseException {
 export class NotFoundException extends BaseException {
     constructor(message: string = "Resource not found") {
         super(message, 404)
+    }
+}
+
+export class InternalServerException extends BaseException {
+    constructor(message: string = "Internal Server Error") {
+        super(message, 500)
     }
 }
 

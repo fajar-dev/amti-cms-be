@@ -1,17 +1,7 @@
 import { Setting } from "../entities/setting.entity"
-import { minio } from "../../../core/helpers/minio"
+import { resolveStorageUrl } from "../../../core/helpers/storage-url"
 
 export class SettingSerializer {
-    private static async resolveUrl(path?: string | null): Promise<string | null> {
-        if (!path) return null
-        if (path.startsWith("http://") || path.startsWith("https://")) return path
-        try {
-            return await minio.getPresignedUrl(path)
-        } catch {
-            return path
-        }
-    }
-
     static async single(setting: Setting) {
         return {
             id: setting.id,
@@ -21,11 +11,11 @@ export class SettingSerializer {
             author: setting.author ?? null,
             copyright: setting.copyright ?? null,
             logo: setting.logo ?? null,
-            logoUrl: await this.resolveUrl(setting.logo),
+            logoUrl: await resolveStorageUrl(setting.logo, { passthroughAbsolute: true, fallbackToPath: true }),
             favicon: setting.favicon ?? null,
-            faviconUrl: await this.resolveUrl(setting.favicon),
+            faviconUrl: await resolveStorageUrl(setting.favicon, { passthroughAbsolute: true, fallbackToPath: true }),
             ogImage: setting.ogImage ?? null,
-            ogImageUrl: await this.resolveUrl(setting.ogImage),
+            ogImageUrl: await resolveStorageUrl(setting.ogImage, { passthroughAbsolute: true, fallbackToPath: true }),
             phone: setting.phone ?? null,
             email: setting.email ?? null,
             address: setting.address ?? null,

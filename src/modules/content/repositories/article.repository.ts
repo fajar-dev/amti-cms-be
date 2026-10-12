@@ -9,9 +9,9 @@ const SORTABLE_COLUMNS: Record<string, string> = {
     status: "article.status",
     category: "category.name",
     author: "author.name",
-    viewsCount: "article.views_count",
-    createdAt: "article.created_at",
-    publishedAt: "article.published_at",
+    viewsCount: "article.viewsCount",
+    createdAt: "article.createdAt",
+    publishedAt: "article.publishedAt",
 }
 
 export class TypeOrmArticleRepository implements IArticleRepository {
@@ -41,7 +41,7 @@ export class TypeOrmArticleRepository implements IArticleRepository {
         }
 
         if (filters.categoryId) {
-            query.andWhere("article.category_id = :categoryId", { categoryId: filters.categoryId })
+            query.andWhere("article.categoryId = :categoryId", { categoryId: filters.categoryId })
         }
 
         if (filters.status) {

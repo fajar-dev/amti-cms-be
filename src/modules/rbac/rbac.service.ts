@@ -4,6 +4,7 @@ import { Role } from "./entities/role.entity"
 import { Permission } from "./entities/permission.entity"
 import { BadRequestException, NotFoundException } from "../../core/exceptions/base"
 import { SortOrder } from "../../core/interfaces/base.repository.interface"
+import type { CreateRoleValidator, UpdateRoleValidator } from "./validators/role.validator"
 
 export class RbacService {
     constructor(
@@ -27,7 +28,7 @@ export class RbacService {
         return role
     }
 
-    async createRole(data: { name: string; description?: string | null; permissionIds?: number[] }): Promise<Role> {
+    async createRole(data: CreateRoleValidator): Promise<Role> {
         const existing = await this.roleRepository.findByName(data.name.trim())
         if (existing) {
             throw new BadRequestException("Role name already exists")
@@ -38,15 +39,14 @@ export class RbacService {
             permissions = await this.permissionRepository.findByIds(data.permissionIds)
         }
 
-        const role = new Role()
-        role.name = data.name.trim()
-        role.description = data.description ? data.description.trim() : undefined
-        role.permissions = permissions
-
-        return await this.roleRepository.save(role)
+        return await this.roleRepository.save({
+            name: data.name.trim(),
+            description: data.description ? data.description.trim() : undefined,
+            permissions,
+        })
     }
 
-    async updateRole(id: number, data: { name?: string; description?: string | null; permissionIds?: number[] }): Promise<Role> {
+    async updateRole(id: number, data: UpdateRoleValidator): Promise<Role> {
         const role = await this.getRoleById(id)
 
         if (data.name && data.name.trim() !== role.name) {

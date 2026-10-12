@@ -1,6 +1,7 @@
 import "reflect-metadata"
 import { DataSource } from "typeorm"
 import { AppDataSource } from "../../config/database"
+import { logger } from "../../core/helpers/logger"
 import { Permission } from "../../modules/rbac/entities/permission.entity"
 import { Role } from "../../modules/rbac/entities/role.entity"
 
@@ -74,13 +75,13 @@ export async function seedRbac(ds: DataSource) {
     const permRepo = ds.getRepository(Permission)
     const roleRepo = ds.getRepository(Role)
 
-    console.log("Seeding RBAC permissions...")
+    logger.info("Seeding RBAC permissions...")
     for (const permData of defaultPermissions) {
         let perm = await permRepo.findOne({ where: { name: permData.name } })
         if (!perm) {
             perm = permRepo.create(permData)
             await permRepo.save(perm)
-            console.log(`  + Permission created: ${perm.name}`)
+            logger.info("Permission created", { name: perm.name })
         } else {
             perm.module = permData.module
             perm.description = permData.description
@@ -91,7 +92,7 @@ export async function seedRbac(ds: DataSource) {
     const allPerms = await permRepo.find()
     const permMap = new Map(allPerms.map(p => [p.name, p]))
 
-    console.log("Seeding RBAC roles...")
+    logger.info("Seeding RBAC roles...")
     for (const roleData of defaultRoles) {
         let role = await roleRepo.findOne({
             where: { name: roleData.name },
@@ -109,28 +110,28 @@ export async function seedRbac(ds: DataSource) {
                 permissions: rolePerms,
             })
             await roleRepo.save(role)
-            console.log(`  + Role created: ${role.name} (${rolePerms.length} perms)`)
+            logger.info("Role created", { name: role.name, permissions: rolePerms.length })
         } else {
             role.description = roleData.description
             role.permissions = rolePerms
             await roleRepo.save(role)
-            console.log(`  ~ Role updated: ${role.name} (${rolePerms.length} perms)`)
+            logger.info("Role updated", { name: role.name, permissions: rolePerms.length })
         }
     }
 
-    console.log("RBAC seeding complete.\n")
+    logger.info("RBAC seeding complete")
 }
 
 // Standalone execution
 if (import.meta.main) {
     AppDataSource.initialize()
         .then(async (ds) => {
-            console.log("Connected to database")
+            logger.info("Connected to database")
             await seedRbac(ds)
             await ds.destroy()
         })
         .catch((err) => {
-            console.error("RBAC seeder failed:", err)
+            logger.error("RBAC seeder failed", { err })
             process.exit(1)
         })
 }

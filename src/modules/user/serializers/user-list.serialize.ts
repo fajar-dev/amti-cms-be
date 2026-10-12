@@ -1,22 +1,18 @@
-import { minio } from "../../../core/helpers/minio"
+import { resolveStorageUrl } from "../../../core/helpers/storage-url"
+import { UserListRow } from "../interfaces/user.repository.interface"
 
 export class UserListSerializer {
-    private static async resolvePhotoUrl(photo?: string | null): Promise<string | null> {
-        if (!photo) return null
-        return await minio.getPresignedUrl(photo)
-    }
-
-    static async single(row: any) {
+    static async single(row: UserListRow) {
         return {
             id: row.id,
             name: row.name,
-            photo: await this.resolvePhotoUrl(row.photo),
+            photo: await resolveStorageUrl(row.photo),
             email: row.email || null,
             isActive: Boolean(row.isActive),
         }
     }
 
-    static async collection(rows: any[]) {
+    static async collection(rows: UserListRow[]) {
         return Promise.all(rows.map(row => this.single(row)))
     }
 }

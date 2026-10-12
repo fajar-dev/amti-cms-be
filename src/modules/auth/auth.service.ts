@@ -1,4 +1,16 @@
+import crypto from "crypto"
+import { verify } from "hono/jwt"
+import { config } from "../../config/config"
+import { UnauthorizedException, BadRequestException } from "../../core/exceptions/base"
+import { AuthHelper } from "../../core/helpers/auth"
+import { hashPassword, comparePassword } from "../../core/helpers/hash"
+import { logger } from "../../core/helpers/logger"
+import { mail } from "../../core/helpers/mail"
+import { minio } from "../../core/helpers/minio"
+import { renderForgotPasswordEmail } from "../../core/templates/email"
 import { User } from "../user/entities/user.entity"
+import { UserService } from "../user/user.service"
+import { IPasswordResetTokenRepository } from "./interfaces/password-reset-token.repository.interface"
 import {
     RegisterValidator,
     LoginValidator,
@@ -7,18 +19,6 @@ import {
     RefreshTokenValidator,
     GoogleLoginValidator,
 } from "./validators/auth.validator"
-import { UnauthorizedException, BadRequestException } from "../../core/exceptions/base"
-import { hashPassword, comparePassword } from "../../core/helpers/hash"
-import { verify } from "hono/jwt"
-import { config } from "../../config/config"
-import crypto from "crypto"
-import { mail } from "../../core/helpers/mail"
-import { renderForgotPasswordEmail } from "../../core/templates/email"
-import { UserService } from "../user/user.service"
-import { AuthHelper } from "../../core/helpers/auth"
-import { minio } from "../../core/helpers/minio"
-import { logger } from "../../core/helpers/logger"
-import { IPasswordResetTokenRepository } from "./interfaces/password-reset-token.repository.interface"
 
 export class AuthService {
     constructor(
@@ -116,7 +116,6 @@ export class AuthService {
             expiresInHours: 10,
         })
         mail.sendHtml(user.email, "Reset Password", html, text).catch(err => logger.error('Failed to send forgot-password email', { email: user.email, err }))
-        return true
     }
 
     async resetPassword(data: ResetPasswordValidator) {
@@ -135,25 +134,31 @@ export class AuthService {
 
         // Hapus semua token reset password untuk email ini setelah berhasil di-reset
         await this.passwordResetTokenRepository.deleteByEmail(tokenRecord.email)
-
-        return true
     }
 
-    async validateResetToken(email: string, token: string) {
+    async validateResetToken(email?: string, token?: string) {
+        if (!token) {
+            throw new BadRequestException("Reset token is required")
+        }
+        if (!email) {
+            throw new BadRequestException("Email is required")
+        }
+
         const tokenRecord = await this.passwordResetTokenRepository.findValidByEmailAndToken(email, token)
         if (!tokenRecord) {
             throw new BadRequestException("Invalid or expired reset token")
         }
-        return true
     }
 
-    async logout(_user: User) {
-        return true
-    }
+    /**
+     * Logout bersifat stateless: access token tetap valid sampai kedaluwarsa
+     * (15 menit) karena belum ada mekanisme revokasi token di server.
+     */
+    async logout(_user: User): Promise<void> {}
 
     async updateProfile(userId: number, data: { name: string; email: string; photo?: string | null }) {
         const user = await this.userService.getByIdWithPassword(userId)
-        
+
         if (data.email && data.email !== user.email) {
             const existing = await this.userService.getByEmail(data.email)
             if (existing) {
@@ -172,7 +177,7 @@ export class AuthService {
 
     async updatePassword(userId: number, data: { oldPassword?: string; newPassword: string }) {
         const user = await this.userService.getByIdWithPassword(userId)
-        
+
         if (user.password) {
             if (!data.oldPassword) {
                 throw new BadRequestException("Old password is required")
@@ -185,6 +190,5 @@ export class AuthService {
 
         user.password = await hashPassword(data.newPassword)
         await this.userService.save(user)
-        return true
     }
 }

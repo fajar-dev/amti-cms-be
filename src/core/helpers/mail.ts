@@ -1,12 +1,13 @@
 import { transporter } from "../../config/smtp"
 import { config } from "../../config/config"
+import { InternalServerException } from "../exceptions/base"
 import { logger } from "./logger"
 
 interface MailPayload {
-    to: string;
-    subject: string;
-    text?: string;
-    html?: string;
+    to: string
+    subject: string
+    text?: string
+    html?: string
 }
 
 class Mail {
@@ -25,12 +26,13 @@ class Mail {
                 text: text || (html ? "Please view this email in an HTML-compatible client." : ""),
                 html,
             })
-            
-            logger.info('Email sent', { to, subject, messageId: info.messageId })
+
+            logger.info("Email sent", { to, subject, messageId: info.messageId })
             return info
         } catch (error) {
-            logger.error('Failed to send email', { to, subject, err: error })
-            throw new Error(`Failed to send email to ${to}: ${(error as Error).message}`)
+            logger.error("Failed to send email", { to, subject, err: error })
+            // Detail SMTP hanya masuk log; pesan ke client sengaja generik.
+            throw new InternalServerException("Failed to send email")
         }
     }
 

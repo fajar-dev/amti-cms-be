@@ -2,14 +2,18 @@ import { Category } from "../entities/category.entity"
 import { ICategoryRepository } from "../interfaces/category.repository.interface"
 import { NotFoundException, BadRequestException } from "../../../core/exceptions/base"
 import { SortOrder } from "../../../core/interfaces/base.repository.interface"
+import { slugify } from "../../../core/helpers/slug"
 
-function slugify(text: string): string {
-    return text
-        .toString()
-        .toLowerCase()
-        .trim()
-        .replace(/[\s\W-]+/g, "-")
-        .replace(/^-+|-+$/g, "")
+export interface CreateCategoryDTO {
+    name: string
+    slug?: string
+    description?: string | null
+}
+
+export interface UpdateCategoryDTO {
+    name?: string
+    slug?: string
+    description?: string | null
 }
 
 export class CategoryService {
@@ -37,7 +41,7 @@ export class CategoryService {
         return category
     }
 
-    async create(data: { name: string; slug?: string; description?: string | null }): Promise<Category> {
+    async create(data: CreateCategoryDTO): Promise<Category> {
         const slug = slugify(data.slug || data.name)
         if (!slug) {
             throw new BadRequestException("Invalid category name or slug")
@@ -55,13 +59,11 @@ export class CategoryService {
         })
     }
 
-    async update(id: number, data: { name?: string; slug?: string; description?: string | null }): Promise<Category> {
+    async update(id: number, data: UpdateCategoryDTO): Promise<Category> {
         const category = await this.getById(id)
+        const patch: Partial<Category> = { ...data }
 
-        if (data.name !== undefined) {
-            category.name = data.name
-        }
-
+        // Slug ikut diperbarui kalau name diubah tanpa slug eksplisit.
         if (data.slug !== undefined || (data.name && !data.slug)) {
             const newSlug = slugify(data.slug || data.name || category.name)
             if (newSlug !== category.slug) {
@@ -69,13 +71,15 @@ export class CategoryService {
                 if (existingSlug && existingSlug.id !== id) {
                     throw new BadRequestException("Category slug already in use")
                 }
-                category.slug = newSlug
+                patch.slug = newSlug
             }
         }
 
         if (data.description !== undefined) {
-            category.description = data.description ?? null
+            patch.description = data.description ?? null
         }
+
+        this.repository.merge(category, patch)
 
         return await this.repository.save(category)
     }

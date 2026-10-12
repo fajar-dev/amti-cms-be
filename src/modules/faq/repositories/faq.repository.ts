@@ -7,8 +7,8 @@ import { SortOrder } from "../../../core/interfaces/base.repository.interface"
 const SORTABLE_COLUMNS: Record<string, string> = {
     question: "faq.question",
     order: "faq.order",
-    isActive: "faq.is_active",
-    createdAt: "faq.created_at",
+    isActive: "faq.isActive",
+    createdAt: "faq.createdAt",
 }
 
 export class TypeOrmFaqRepository implements IFaqRepository {
@@ -35,7 +35,7 @@ export class TypeOrmFaqRepository implements IFaqRepository {
         }
 
         if (filters.isActive !== undefined) {
-            query.andWhere("faq.is_active = :isActive", { isActive: filters.isActive })
+            query.andWhere("faq.isActive = :isActive", { isActive: filters.isActive })
         }
 
         const total = await query.getCount()

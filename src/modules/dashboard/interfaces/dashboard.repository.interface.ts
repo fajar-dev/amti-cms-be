@@ -1,3 +1,6 @@
+import { Article } from "../../content/entities/article.entity"
+import { Message } from "../../message/entities/message.entity"
+
 export interface DashboardSummaryData {
     totalArticles: number
     publishedArticles: number
@@ -33,6 +36,6 @@ export interface IDashboardRepository {
     getViewsTrend(daysCount?: number): Promise<ViewsTrendData[]>
     getCategoriesDistribution(): Promise<CategoryDistributionData[]>
     getMessagesTrend(monthsCount?: number): Promise<MessagesTrendData[]>
-    getRecentArticles(limit?: number): Promise<any[]>
-    getRecentMessages(limit?: number): Promise<any[]>
+    getRecentArticles(limit?: number): Promise<Article[]>
+    getRecentMessages(limit?: number): Promise<Message[]>
 }

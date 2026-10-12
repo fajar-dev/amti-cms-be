@@ -50,7 +50,7 @@ Untuk log `error`, ada field tambahan `error`:
   "message": "Unhandled exception",
   "requestId": "0d4b0aab-ebf9-4d33-8a73-63a95426d442",
   "method": "POST",
-  "path": "/api/contact",
+  "path": "/api/content/articles",
   "statusCode": 500,
   "error": { "name": "TypeError", "message": "...", "stack": "..." }
 }
@@ -68,7 +68,7 @@ Untuk log `error`, ada field tambahan `error`:
 | `method`, `path`, `query` | Detail request |
 | `statusCode` | Status response |
 | `durationMs` | Lama proses request |
-| `ip` | Dari header `x-forwarded-for` (proxy/load balancer), fallback ke koneksi langsung |
+| `ip` | Resolusi via `resolveClientIp(c, { fallbackToSocket: true })` (`src/core/helpers/client-ip.ts`): header `x-forwarded-for` → `cf-connecting-ip` → alamat socket koneksi langsung |
 | `userAgent` | Header `User-Agent` |
 
 Level dipilih otomatis dari `statusCode`: `>=500` → `error`, `>=400` → `warn`, selain itu → `info`.

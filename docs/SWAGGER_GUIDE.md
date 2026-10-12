@@ -48,7 +48,7 @@ Cek file yang sudah ada dulu sebelum menambah section baru — kemungkinan besar
 | Query parameter | `{nama}.controller.ts` → `c.req.query(...)` |
 | Status code & kapan muncul | `{nama}.service.ts` → exception yang dilempar |
 
-> **Kenapa bukan entity?** Entity bisa punya field yang tidak (belum) diserialisasi ke response — kalau swagger mengikuti entity, dokumentasi bisa berbohong soal apa yang benar-benar dikembalikan API. Contoh nyata di proyek ini: `Contact` entity punya `salutation`/`type`/`isActive`, tapi `ContactSerializer.single()` belum mengembalikannya di response — jadi field itu didokumentasikan di `CreateContactRequest`/`UpdateContactRequest` (karena diterima), tapi **tidak** di schema `Contact` (karena belum dikembalikan).
+> **Kenapa bukan entity?** Entity bisa punya field yang tidak (belum) diserialisasi ke response — kalau swagger mengikuti entity, dokumentasi bisa berbohong soal apa yang benar-benar dikembalikan API. Contoh nyata di proyek ini: `Category` entity punya relasi `articles` (`@OneToMany`), tapi `CategorySerializer.single()` tidak mengembalikannya — jadi `articles` **tidak** muncul di schema `Category`. Pola yang sama juga berlaku pada relasi `views` di `Article`.
 
 ---
 
@@ -68,7 +68,7 @@ Contoh pola response sukses dengan data:
 ```yaml
 responses:
   "200":
-    description: Contact retrieved successfully
+    description: Faq retrieved successfully
     content:
       application/json:
         schema:
@@ -76,14 +76,14 @@ responses:
             - $ref: "#/components/schemas/BaseResponse"
             - type: object
               properties:
-                data: { $ref: "#/components/schemas/Contact" }
+                data: { $ref: "#/components/schemas/Faq" }
 ```
 
 Contoh pola error (400/401/403/404):
 
 ```yaml
 "404":
-  description: Contact not found
+  description: Faq not found
   content:
     application/json:
       schema: { $ref: "#/components/schemas/ErrorResponse" }
@@ -119,7 +119,7 @@ Contoh pola validasi (422) — selalu sama persis di semua endpoint:
 | Schema request | `Create{Nama}Request`, `Update{Nama}Request` |
 | Schema response object | `{Nama}` (singular, PascalCase) — harus cocok dengan output serializer, bisa beda antar serializer meski sama-sama "User" (lihat `AuthUser` vs `User` di proyek ini) |
 | Schema enum | `{NamaEnum}` PascalCase, sama dengan nama class enum di `enum/{nama}.enum.ts` |
-| Tag | PascalCase, sama dengan nama module (`Auth`, `Contact`, `User`) |
+| Tag | PascalCase, sama dengan nama module (`Auth`, `FAQ`, `User`, `Content - Articles`) |
 
 > **Penting**: kalau dua serializer berbeda menghasilkan shape yang berbeda untuk "user" (mis. `AuthSerializer` punya `hasPassword`, `UserSerializer` punya `createdAt` tapi tidak keduanya), **jangan** dipaksa pakai satu schema yang sama. Buat schema terpisah (`AuthUser` vs `User`) sesuai serializer aslinya.
 

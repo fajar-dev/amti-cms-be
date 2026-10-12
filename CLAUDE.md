@@ -50,21 +50,25 @@ Baca panduan lengkap: `docs/MODULE_GUIDE.md`
 
 Checklist:
 1. `enum/{nama}.enum.ts` — Enum (opsional, hanya jika ada field enum)
-2. `entities/{nama}.entity.ts` — TypeORM entity
-3. `interfaces/{nama}.repository.interface.ts` — Repository contract (extends `IBaseRepository<T>`)
+2. `entities/{nama}.entity.ts` — TypeORM entity (opsional, jika module tidak punya tabel sendiri)
+3. `interfaces/{nama}.repository.interface.ts` — Repository contract (opsional `extends IBaseRepository<T>`)
 4. `repositories/{nama}.repository.ts` — TypeORM implementation
 5. `{nama}.service.ts` — Business logic
 6. `{nama}.controller.ts` — HTTP handlers (gunakan `c.req.valid()`, bukan `c.req.json()`)
 7. `validators/{nama}.validator.ts` — Zod schemas
-8. `serializers/{nama}.serialize.ts` — Response transform (harus punya `single()` dan `collection()`)
+8. `serializers/{nama}.serialize.ts` — Response transform (standarnya `single()` + `collection()`)
 9. `{nama}.module.ts` — DI wiring (Composition Root)
-10. Daftarkan entity di `src/config/database.ts` → array `entities`
+10. Daftarkan entity di `src/config/database.ts` → array `entities` (lewati jika tidak ada entity)
 11. Tambahkan route di `src/routes/api.ts`
 12. Buat test E2E di `test/{nama}.test.ts`
 13. Tambahkan data factory di `test/helpers.ts`
 14. Update `swagger.yaml` (baca `docs/SWAGGER_GUIDE.md`)
 15. Update `docs/CHANGELOG.md`
 16. Jalankan `bun test` → pastikan semua pass
+
+> Tidak semua module punya entity/repository (contoh: `storage`, `dashboard`) dan tidak semua serializer
+> punya `single()`/`collection()` (contoh: `DashboardSerializer`, `SettingSerializer`).
+> Lihat "Catatan Konvensi" di bawah.
 
 ## Naming Conventions
 
@@ -79,10 +83,11 @@ Checklist:
 - Serializer: `{nama}.serialize.ts`
 - Module: `{nama}.module.ts`
 - Middleware: `{nama}.middleware.ts`
+- Template email: `{nama}.template.ts` (di dalam folder `templates/email/`)
 - Test: `{nama}.test.ts`
 
 ### Classes (PascalCase)
-- Enum: nama deskriptif, tanpa prefix nama module (`ContactType`, bukan `ContactTypeEnum`)
+- Enum: nama deskriptif, tanpa prefix nama module (`ArticleStatus`, bukan `ArticleStatusEnum`)
 - Entity: `Invoice`
 - Repo interface: `IInvoiceRepository`
 - Repo implementation: `TypeOrmInvoiceRepository`
@@ -103,6 +108,7 @@ Checklist:
 - `ConflictException` (409)
 - `ValidationException` (422) — untuk Zod errors
 - `TooManyRequestsException` (429)
+- `InternalServerException` (500) — error tak terduga / kegagalan dependency eksternal
 
 ## Response Format Standar
 
@@ -197,15 +203,37 @@ routes.delete("/{resource}/:id", authMiddleware, (c) => xxxController.destroy(c)
 | Password | `src/core/helpers/hash.ts` |
 | Email | `src/core/helpers/mail.ts` |
 | File storage | `src/core/helpers/minio.ts` |
+| Slug | `src/core/helpers/slug.ts` — `slugify()` |
+| URL object storage | `src/core/helpers/storage-url.ts` — `resolveStorageUrl()` |
+| IP client | `src/core/helpers/client-ip.ts` — `resolveClientIp()` |
 | Structured logger (JSON) | `src/core/helpers/logger.ts` |
 | Request access log | `src/core/middlewares/logger.middleware.ts` |
 | Language detection | `src/core/middlewares/language.middleware.ts` |
+| RBAC guard | `src/core/middlewares/rbac.middleware.ts` |
+| Body JSON opsional | `src/core/middlewares/optional-json.middleware.ts` |
+| Template email | `src/core/templates/email/` |
 | Terjemahan pesan | `src/core/helpers/i18n.ts`, `src/core/i18n/en.json`, `src/core/i18n/id.json` |
+| Migrasi | `src/database/migrations/` |
+| Seeder | `src/database/seeders/` |
 | Routes | `src/routes/api.ts` |
 | Swagger | `swagger.yaml` |
 | Test setup | `test/setup.ts` |
 | Test helpers | `test/helpers.ts` |
 | Health check | `GET /health` |
+
+## Catatan Konvensi (Jangan Dianggap Inkonsistensi)
+
+Beberapa hal berikut **disengaja** dan bukan pelanggaran konvensi:
+
+- **Nama file serializer** wajib ikut pola `{nama}.serialize.ts` (`dashboard.serialize.ts`, bukan `dashboard.serializer.ts`).
+- **`single()`/`collection()`** adalah pola standar tapi tidak wajib: `DashboardSerializer` memakai `recentArticle(s)`/`recentMessage(s)`, `SettingSerializer` hanya `single()` (module single-row).
+- **`IBaseRepository<T>` opsional** — dipakai 7 repository CRUD; repository read-only/agregat (`IRoleRepository`, `IPermissionRepository`, `ISettingRepository`, `IDashboardRepository`) tidak memakainya.
+- **Default sort berbeda per module** — `faq` & `rbac` default `ASC`; `article`, `category`, `user`, `message` default `DESC`. Pilih sesuai domain module barumu.
+- **Module tanpa entity/repository** itu sah — `storage` (handler upload/proxy) dan `dashboard` (agregasi read-only).
+- **Module `content`** memakai subfolder `controllers/` dan `services/` karena menangani 2 domain (article & category).
+- **Style**: 4 spasi, double quotes, tanpa semicolon. File di `src/database/migrations/` dibiarkan memakai semicolon (artefak historis).
+- **Seeder** memakai `logger` (output JSON), bukan `console.log`.
+- **`process.env` langsung** diizinkan hanya di harness test (`test/setup.ts`), bukan di `src/`.
 
 ## Testing (WAJIB)
 
@@ -236,10 +264,21 @@ DB_TYPE=mysql bun test
 
 ### File Test yang Ada
 
+Total: **154 test di 11 file**.
+
 | File | Tests |
 |------|-------|
-| `test/auth.test.ts` | 28 test — register, login, refresh, me, logout, forgot/reset password |
-| `test/contact.test.ts` | 21 test — CRUD, auth, pagination, search, lifecycle |
+| `test/auth.test.ts` | 38 test — register, login, refresh, me, logout, forgot/reset password, profile |
+| `test/user.test.ts` | 22 test — CRUD user, list ringkas, filter, pagination, upload file |
+| `test/content.test.ts` | 16 test — kategori, artikel, slug, SEO, views tracking |
+| `test/setting.test.ts` | 15 test — settings publik, meta/contact/social, RBAC & validasi |
+| `test/language.test.ts` | 12 test — deteksi bahasa, message terjemahan, konsistensi kamus |
+| `test/rbac.test.ts` | 12 test — role & permission, enforcement akses |
+| `test/message.test.ts` | 11 test — submit publik, manajemen admin, status baca |
+| `test/faq.test.ts` | 10 test — CRUD, filter status aktif, pagination |
+| `test/logger.test.ts` | 8 test — structured logger, `requestLogger` middleware |
+| `test/dashboard.test.ts` | 7 test — endpoint statistik & trend |
+| `test/email.test.ts` | 3 test — template email forgot password |
 
 ## Production Safety
 

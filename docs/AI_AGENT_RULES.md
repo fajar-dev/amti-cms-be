@@ -66,6 +66,10 @@ Baca: [`MODULE_GUIDE.md`](./MODULE_GUIDE.md)
 ☐ Jalankan `bun test` dan pastikan semua pass
 ```
 
+> Module tidak selalu punya entity/repository (contoh: `storage` dan `dashboard`), dan serializer tidak selalu
+> punya `single()`/`collection()` (contoh: `DashboardSerializer`, `SettingSerializer`). Ikuti bentuk module-nya,
+> bukan memaksakan template.
+
 ### Menambah Endpoint ke Module yang Ada
 
 ```
@@ -102,21 +106,31 @@ Baca: [`MODULE_GUIDE.md`](./MODULE_GUIDE.md)
 | Kebutuhan | File | Catatan |
 |-----------|------|---------|
 | Konfigurasi env | `src/config/config.ts` | Satu-satunya tempat akses env |
-| Database DataSource | `src/config/database.ts` | Daftarkan entity baru di sini |
+| Database DataSource | `src/config/database.ts` | Daftarkan entity baru di sini + registrasi migrasi |
 | SMTP transporter | `src/config/smtp.ts` | Konfigurasi email |
-| Exception classes | `src/core/exceptions/base.ts` | `BaseException` hierarchy (400, 401, 403, 404, 409, 422, 429) |
+| Exception classes | `src/core/exceptions/base.ts` | `BaseException` hierarchy (400, 401, 403, 404, 409, 422, 429, 500) |
 | Response format | `src/core/helpers/response.ts` | ApiResponse.success / paginate / error |
 | Validation hook | `src/core/helpers/validator.ts` | validationHook untuk zValidator |
+| Body opsional | `src/core/middlewares/optional-json.middleware.ts` | `optionalJsonBody(schema)` — body kosong/rusak → `{}` |
 | JWT & Auth | `src/core/helpers/auth.ts` | AuthHelper.generateTokens |
 | Password hash | `src/core/helpers/hash.ts` | hashPassword, comparePassword |
 | Email sending | `src/core/helpers/mail.ts` | mail.sendText, mail.sendHtml |
+| Template email | `src/core/templates/email/` | Pola nama `{nama}.template.ts` (mis. `forgot-password.template.ts`) |
 | File upload | `src/core/helpers/minio.ts` | minio.upload, minio.delete, dll |
+| URL object storage | `src/core/helpers/storage-url.ts` | `resolveStorageUrl(path, { passthroughAbsolute, fallbackToPath })` |
+| Slug | `src/core/helpers/slug.ts` | `slugify()` — dipakai ArticleService & CategoryService |
+| IP client | `src/core/helpers/client-ip.ts` | `resolveClientIp(c, { fallbackToSocket })` |
 | Structured logger | `src/core/helpers/logger.ts` | `logger.info/warn/error/debug()` — JSON, lihat `docs/LOGGING_GUIDE.md` |
+| Terjemahan message | `src/core/helpers/i18n.ts` | `translate()` + kamus `src/core/i18n/{en,id}.json` |
 | Auth middleware | `src/core/middlewares/auth.middleware.ts` | JWT Bearer |
 | API key middleware | `src/core/middlewares/api-key.middleware.ts` | x-api-key |
+| RBAC middleware | `src/core/middlewares/rbac.middleware.ts` | `requirePermission` / `requireRole` |
+| Language middleware | `src/core/middlewares/language.middleware.ts` | Deteksi `Accept-Language` |
 | Request logger | `src/core/middlewares/logger.middleware.ts` | Access log JSON per request + `X-Request-Id` |
 | Route definitions | `src/routes/api.ts` | Semua route didefinisikan di sini |
-| Base repo interface | `src/core/interfaces/base.repository.interface.ts` | Interface dasar CRUD |
+| Base repo interface | `src/core/interfaces/base.repository.interface.ts` | Interface dasar CRUD (**opsional**, lihat Catatan Konvensi) |
+| Migrasi | `src/database/migrations/` | 1 entity = 1 migrasi (sudah diimplementasikan, `bun run migration:run`) |
+| Seeder | `src/database/seeders/` | Pakai `logger`, bukan `console.log` (`bun run seed`) |
 | Health check | `GET /health` | Status DB, uptime, environment |
 
 ---
@@ -237,6 +251,23 @@ routes.delete("/{resource}/:id", authMiddleware, (c) => xxxController.destroy(c)
 
 ---
 
+## 📐 Catatan Konvensi (Jangan Dianggap Inkonsistensi)
+
+Beberapa hal berikut **disengaja** dan bukan pelanggaran konvensi:
+
+| Hal | Aturan |
+|-----|--------|
+| Nama file serializer | Wajib ikut pola `{nama}.serialize.ts` (`dashboard.serialize.ts`, bukan `dashboard.serializer.ts`) |
+| `single()` / `collection()` | Pola standar, tapi tidak wajib — `DashboardSerializer` memakai `recentArticle(s)`/`recentMessage(s)`, `SettingSerializer` hanya `single()` (module single-row) |
+| `IBaseRepository<T>` | Opsional — dipakai 7 repository CRUD; repository read-only/agregat (`IRoleRepository`, `IPermissionRepository`, `ISettingRepository`, `IDashboardRepository`) tidak memakainya |
+| Default sort per module | `faq` & `rbac` → `ASC`; `article`, `category`, `user`, `message` → `DESC`. Pilih sesuai domain module barumu |
+| Pengecualian style migrasi | File di `src/database/migrations/` dibiarkan memakai semicolon (artefak historis) |
+| Nama file template email | `{nama}.template.ts` di dalam `src/core/templates/email/` (`forgot-password.template.ts`) |
+| Output seeder | Seeder memakai `logger` (JSON), bukan `console.log` |
+| Pengecualian `process.env` | Diizinkan hanya di `test/setup.ts` (harness test) |
+
+---
+
 ## 🚫 Anti-Patterns (JANGAN Lakukan)
 
 ### 1. Inline Query di Controller
@@ -275,6 +306,9 @@ const secret = process.env.JWT_SECRET
 import { config } from "../../config/config"
 const secret = config.app.jwtSecret
 ```
+
+> **Pengecualian**: akses `process.env` langsung diizinkan di harness test (`test/setup.ts`) untuk membaca
+> `DB_TYPE`/`DB_TEST_NAME` sebelum `config` dipakai. Ini bukan app code — di seluruh `src/` aturan di atas tetap berlaku.
 
 ### 4. Try-Catch di Controller
 

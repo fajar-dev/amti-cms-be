@@ -28,7 +28,8 @@ Proyek ini menggunakan **Clean Architecture** dengan prinsip:
 ├──────────────────────────────────────────────────────────┤
 │  Infrastructure Layer                                    │
 │  TypeORM Repository → Implementasi akses database        │
-│  Helpers → Auth, Mail, MinIO, Hash, Logger               │
+│  Helpers → Auth, Mail, MinIO, Hash, Logger, Slug,        │
+│            StorageUrl, ClientIp                          │
 └──────────────────────────────────────────────────────────┘
 ```
 
@@ -121,8 +122,14 @@ Error ditangani di `src/index.ts` → `app.onError()`:
 | Module | Path | Deskripsi | Memiliki Controller |
 |--------|------|-----------|---------------------|
 | `auth` | `src/modules/auth/` | Register, login, Google OAuth, refresh token, reset password | ✅ |
-| `user` | `src/modules/user/` | User entity, repository, service (digunakan oleh auth) | ❌ (dipakai internal) |
-| `contact` | `src/modules/contact/` | CRUD contact dengan pagination & search | ✅ |
+| `user` | `src/modules/user/` | CRUD user & daftar ringkas (dropdown) | ✅ |
+| `content` | `src/modules/content/` | Category, Article, dan ArticleView (2 domain, pakai subfolder `controllers/` & `services/`) | ✅ |
+| `faq` | `src/modules/faq/` | CRUD FAQ dengan pagination & search | ✅ |
+| `rbac` | `src/modules/rbac/` | Role, permission, dan relasi many-to-many `role_permissions` | ✅ |
+| `setting` | `src/modules/setting/` | Website settings single-row (meta, contact, social media) | ✅ |
+| `message` | `src/modules/message/` | Pesan kontak masuk: create publik + manajemen admin | ✅ |
+| `dashboard` | `src/modules/dashboard/` | Agregasi statistik & trend untuk admin dashboard — **tanpa entity** (read-only) | ✅ |
+| `storage` | `src/modules/storage/` | Upload file & proxy object storage — **tanpa entity/repository** | ✅ |
 
 ---
 
@@ -130,17 +137,26 @@ Error ditangani di `src/index.ts` → `app.onError()`:
 
 | Komponen | Path | Fungsi |
 |----------|------|--------|
-| **Exceptions** | `core/exceptions/base.ts` | Hierarki custom exception (400, 401, 403, 404, 409, 422, 429) |
+| **Exceptions** | `core/exceptions/base.ts` | Hierarki custom exception (400, 401, 403, 404, 409, 422, 429, 500) — termasuk `InternalServerException` |
 | **ApiResponse** | `core/helpers/response.ts` | Format response standar (success, paginate, error) |
 | **AuthHelper** | `core/helpers/auth.ts` | JWT token generation & Google OAuth verification |
 | **Hash** | `core/helpers/hash.ts` | bcrypt password hashing & comparison |
 | **Mail** | `core/helpers/mail.ts` | Singleton Nodemailer wrapper (sendText, sendHtml) |
 | **MinIO** | `core/helpers/minio.ts` | Singleton MinIO wrapper (upload, delete, presignedUrl, proxy) |
+| **Slug** | `core/helpers/slug.ts` | `slugify()` — dipakai `ArticleService` & `CategoryService` |
+| **Storage URL** | `core/helpers/storage-url.ts` | `resolveStorageUrl()` — path object storage → URL untuk serializer; opsi `passthroughAbsolute` & `fallbackToPath`. Dipakai 7 serializer (auth, user, user-list, article, role, setting, dashboard) |
+| **Client IP** | `core/helpers/client-ip.ts` | `resolveClientIp()` — `x-forwarded-for` → `cf-connecting-ip` → (opsional) alamat socket; dipakai `logger.middleware.ts` & `article.controller.ts` |
 | **Logger** | `core/helpers/logger.ts` | Structured JSON logger (stdout/stderr + `logs/app-{date}.log`, semua level), lihat `LOGGING_GUIDE.md` |
 | **Validator** | `core/helpers/validator.ts` | Zod validation hook untuk Hono |
+| **i18n** | `core/helpers/i18n.ts` | `translate()` — kamus message en/id (`core/i18n/`) |
+| **Template Email** | `core/templates/email/` | Template email (mis. `forgot-password.template.ts`) |
 | **Auth Middleware** | `core/middlewares/auth.middleware.ts` | JWT Bearer token verification |
 | **API Key Middleware** | `core/middlewares/api-key.middleware.ts` | x-api-key header verification |
 | **Token Auth Middleware** | `core/middlewares/token-auth.middleware.ts` | JWT via query param atau header |
+| **RBAC Middleware** | `core/middlewares/rbac.middleware.ts` | `requirePermission` / `requireRole` |
+| **Request Logger** | `core/middlewares/logger.middleware.ts` | Access log JSON per request + `X-Request-Id` |
+| **Language Middleware** | `core/middlewares/language.middleware.ts` | Deteksi `Accept-Language` → `c.set("language", ...)` + header `Content-Language` |
+| **Optional JSON Middleware** | `core/middlewares/optional-json.middleware.ts` | `optionalJsonBody()` — validator untuk body opsional/rusak (dipakai `POST /api/content/articles/:id/view`) |
 
 ---
 

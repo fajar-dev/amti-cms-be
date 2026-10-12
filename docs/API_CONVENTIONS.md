@@ -114,8 +114,9 @@ BaseException (extends HTTPException)
 ├── ForbiddenException       (403)
 ├── NotFoundException        (404)
 ├── ConflictException        (409)
-├── ValidatorException       (422) ← Otomatis dari Zod
-└── TooManyValidatorsException (429)
+├── ValidationException      (422) ← Otomatis dari Zod
+├── TooManyRequestsException (429)
+└── InternalServerException  (500) ← Error tak terduga / kegagalan dependency eksternal
 ```
 
 ### Penggunaan Exception
@@ -125,6 +126,7 @@ BaseException (extends HTTPException)
 throw new NotFoundException("Invoice not found")
 throw new BadRequestException("Email already in use")
 throw new UnauthorizedException("Invalid credentials")
+throw new InternalServerException("Failed to send email")
 
 // ✅ Throw dengan context/errors
 throw new BadRequestException("Validation failed", { field: "reason" })
@@ -168,9 +170,19 @@ routes.post(
 ```typescript
 // Di controller:
 const data = c.req.valid("json" as never)  // Data sudah tervalidasi
+```
 
-// Atau jika tanpa zValidator:
-const body = await c.req.json() as SomeType
+Untuk endpoint yang body JSON-nya **opsional dan boleh rusak** (mis. tracker publik yang sering
+dipanggil tanpa body), gunakan middleware `optionalJsonBody(schema)` dari
+`src/core/middlewares/optional-json.middleware.ts` — bukan `zValidator`. Body kosong atau JSON tidak
+valid akan diperlakukan sebagai `{}`, sementara controller tetap membacanya lewat `c.req.valid("json")`.
+
+```typescript
+// Di routes/api.ts:
+routes.post("/content/articles/:id/view", optionalJsonBody(RecordViewValidator), (c) => articleController.recordView(c))
+
+// Di controller — tetap lewat c.req.valid(), bukan c.req.json():
+const data = c.req.valid("json" as never) as RecordViewValidator
 ```
 
 ---
@@ -225,8 +237,8 @@ GET /api/resource?token=<jwt_token>
 | `page` | number | 1 | Nomor halaman |
 | `limit` | number | 10 | Jumlah item per halaman |
 | `q` | string | "" | Keyword pencarian |
-| `sortBy` | string | "id" | Kolom untuk sorting — hanya kolom yang ada di whitelist `SORTABLE_COLUMNS` module tersebut, lihat `docs/DATABASE_GUIDE.md` §5 (opsional, per-module) |
-| `order` | string | "DESC" | Arah sorting: ASC / DESC (opsional, per-module) |
+| `sortBy` | string | "id" | Kolom untuk sorting — hanya kolom yang ada di whitelist `SORTABLE_COLUMNS` module tersebut, lihat `docs/DATABASE_GUIDE.md` §6 (opsional, per-module) |
+| `order` | string | per-module | Arah sorting: `ASC` / `DESC`. Default **berbeda per module dan disengaja**: `faq` & `rbac` → `ASC`; `article`, `category`, `user`, `message` → `DESC` (opsional, per-module) |
 
 ---
 
@@ -236,11 +248,11 @@ GET /api/resource?token=<jwt_token>
 
 | Operasi | Message Pattern | Contoh |
 |---------|----------------|--------|
-| List | `"{Resources} retrieved successfully"` | `"Contacts retrieved successfully"` |
-| Detail | `"{Resource} retrieved successfully"` | `"Contact retrieved successfully"` |
-| Create | `"{Resource} created successfully"` | `"Contact created successfully"` |
-| Update | `"{Resource} updated successfully"` | `"Contact updated successfully"` |
-| Delete | `"{Resource} deleted successfully"` | `"Contact deleted successfully"` |
+| List | `"{Resources} retrieved successfully"` | `"Faqs retrieved successfully"` |
+| Detail | `"{Resource} retrieved successfully"` | `"Faq retrieved successfully"` |
+| Create | `"{Resource} created successfully"` | `"Faq created successfully"` |
+| Update | `"{Resource} updated successfully"` | `"Faq updated successfully"` |
+| Delete | `"{Resource} deleted successfully"` | `"Faq deleted successfully"` |
 | Auth | Deskriptif | `"Logged in successfully"`, `"Token refreshed successfully"` |
 | Error | Deskriptif | `"Email already in use"`, `"Invalid credentials"` |
 
@@ -263,4 +275,4 @@ GET /api/resource?token=<jwt_token>
 - Setiap endpoint baru **harus** ditambahkan ke `swagger.yaml`
 - Gunakan `$ref` untuk reuse schema
 - Response selalu wrapped dalam `BaseResponse` via `allOf`
-- Tag per module (contoh: `Auth`, `Contact`)
+- Tag per module (contoh: `Auth`, `Faq`)

@@ -33,26 +33,25 @@ src/modules/invoice/
 
 Buat hanya jika entity memiliki field bertipe enum (mis. `status`, `type`, `salutation`).
 
-**File**: `src/modules/contact/enum/type.enum.ts`
+**File**: `src/modules/invoice/enum/invoice-status.enum.ts`
 
 ```typescript
-export enum ContactType {
-    CUSTOMER = 'customer',
-    VENDOR = 'vendor',
-    SUPPLIER = 'supplier',
-    OTHER = 'other',
+export enum InvoiceStatus {
+    DRAFT = "draft",
+    PAID = "paid",
+    VOID = "void",
 }
 ```
 
 ### Aturan Enum
 
 - Folder: `enum/` (singular, bukan `enums/`)
-- File: `{nama}.enum.ts` (kebab-case) — nama file deskriptif sesuai isinya, **tidak harus** sama dengan nama module (contoh: `type.enum.ts`, `salutation.enum.ts` di dalam module `contact`)
-- Class: **PascalCase**, noun deskriptif — **tidak** diprefix nama module (`ContactType`, bukan `ContactTypeEnum` atau `Type`)
-- Value: string literal **lowercase**, merepresentasikan nilai yang disimpan di database (`'customer'`, bukan `CUSTOMER` atau angka)
+- File: `{nama}.enum.ts` (kebab-case) — nama file deskriptif sesuai isinya, **tidak harus** sama dengan nama module (contoh: `article-status.enum.ts` di dalam module `content`)
+- Class: **PascalCase**, noun deskriptif — **tidak** diprefix nama module (`ArticleStatus`, bukan `ArticleStatusEnum` atau `Status`)
+- Value: string literal **lowercase**, merepresentasikan nilai yang disimpan di database (`'draft'`, bukan `DRAFT` atau angka)
 - Satu file enum hanya berisi **satu** enum
-- Import dan pakai di entity: `@Column({ type: "enum", enum: ContactType, ... })`
-- Import dan pakai di validator: `z.enum(ContactType)`
+- Import dan pakai di entity: `@Column({ type: "enum", enum: ArticleStatus, ... })`
+- Import dan pakai di validator: `z.enum(ArticleStatus)`
 - JANGAN duplikasi definisi enum di file lain — selalu import dari `enum/`
 
 ---
@@ -129,6 +128,13 @@ export interface IInvoiceRepository {
 - `save` menerima `Partial<T>` dan optional `EntityManager` (untuk transaction)
 - `merge` untuk update entity
 - `delete` return `Promise<void>`
+
+> **`IBaseRepository<T>` bersifat OPSIONAL.** Interface di `src/core/interfaces/base.repository.interface.ts`
+> menyediakan kontrak dasar (`findById`, `save`, `merge`, `delete`) dan dipakai 7 repository CRUD di proyek ini
+> (mis. `IFaqRepository`, `IArticleRepository`, `IUserRepository`). Repository **read-only/agregat**
+> (`IRoleRepository`, `IPermissionRepository`, `ISettingRepository`, `IDashboardRepository`)
+> sengaja **tidak** meng-extends-nya karena method dasarnya tidak relevan. Pilih salah satu:
+> extends kalau repositorymu CRUD penuh, atau deklarasikan method sendiri kalau bentuknya berbeda.
 
 ---
 
@@ -208,8 +214,13 @@ export class TypeOrmInvoiceRepository implements IInvoiceRepository {
 - Constructor: `AppDataSource.getRepository(Entity)`
 - Pagination: gunakan `createQueryBuilder` dengan `skip` dan `take`
 - Search: gunakan `LIKE :q` dengan `%${q}%`
-- Default ordering: `orderBy("alias.id", "DESC")`
 - Transaction support: `save()` menerima optional `EntityManager`
+- Filter & sorting dinamis: gunakan whitelist `SORTABLE_COLUMNS` + parameter `SortOrder`
+
+> **Default sort berbeda antar module dan itu disengaja** (bukan inkonsistensi):
+> `faq` dan `rbac` default **`ASC`** (urutan konten yang dikurasi / daftar referensi),
+> sedangkan `article`, `category`, `user`, dan `message` default **`DESC`** (data terbaru di atas).
+> Tentukan default yang paling masuk akal untuk domain module barumu, dan tulis eksplisit di signature `findAll`.
 
 ---
 
@@ -400,11 +411,18 @@ export class InvoiceSerializer {
 ### Aturan Serializer
 
 - Nama class: `{Nama}Serializer`
+- Nama file wajib ikut pola `{nama}.serialize.ts` (contoh: `dashboard.serialize.ts`, bukan `dashboard.serializer.ts`)
 - Method `single(entity)`: transform satu entity
 - Method `collection(entities)`: transform array entity via `map`
 - Optional fields: return `null` jika kosong (`field || null`)
 - **Jangan** expose field sensitif (password, token, dll)
-- Jika perlu resolusi async (misal MinIO presigned URL), gunakan `async` method
+- Jika perlu resolusi async (misal URL object storage), gunakan `async` method — helper `resolveStorageUrl()` dari `src/core/helpers/storage-url.ts` menyediakan opsi `passthroughAbsolute` & `fallbackToPath`
+
+> **Pengecualian yang disengaja**: `single()` + `collection()` adalah pola standar, tapi **tidak wajib** kalau
+> bentuk module-nya memang berbeda. Dua pengecualian nyata di proyek ini:
+> - `DashboardSerializer` — serializer agregat, method-nya `recentArticle()`/`recentArticles()` dan
+>   `recentMessage()`/`recentMessages()` (bukan `single()`/`collection()`).
+> - `SettingSerializer` — module single-row, hanya butuh `single()` (tidak ada list untuk di-`collection()`).
 
 ---
 
@@ -441,7 +459,7 @@ import { Invoice } from "../modules/invoice/entities/invoice.entity"
 
 export const AppDataSource = new DataSource({
     // ... config
-    entities: [User, Contact, Invoice],  // ← Tambahkan di sini
+    entities: [User, Faq, Invoice],  // ← Tambahkan di sini
 })
 ```
 
@@ -485,7 +503,7 @@ Tambahkan definisi di `swagger.yaml`:
 
 1. Tambahkan schemas baru di `components.schemas`
 2. Tambahkan paths baru di `paths`
-3. Ikuti pola yang sudah ada (lihat Contact sebagai contoh CRUD)
+3. Ikuti pola yang sudah ada (lihat FAQ sebagai contoh CRUD paling sederhana, Content untuk contoh dengan relasi)
 
 ---
 
@@ -493,15 +511,15 @@ Tambahkan definisi di `swagger.yaml`:
 
 ```
 ☐ enum/{nama}.enum.ts (opsional, jika ada field enum)
-☐ entities/{nama}.entity.ts
-☐ interfaces/{nama}.repository.interface.ts
+☐ entities/{nama}.entity.ts (opsional, jika module tidak punya tabel sendiri — mis. module agregasi/utility)
+☐ interfaces/{nama}.repository.interface.ts (extends IBaseRepository<T> — opsional, lihat Langkah 4)
 ☐ repositories/{nama}.repository.ts
 ☐ {nama}.service.ts
 ☐ {nama}.controller.ts
 ☐ validators/{nama}.validator.ts
-☐ serializers/{nama}.serialize.ts
+☐ serializers/{nama}.serialize.ts (single() + collection(); boleh berbeda kalau bentuk module memang khusus)
 ☐ {nama}.module.ts
-☐ Entity didaftarkan di src/config/database.ts
+☐ Entity didaftarkan di src/config/database.ts (lewati jika module tidak punya entity)
 ☐ Route ditambahkan di src/routes/api.ts
 ☐ Swagger spec diperbarui (swagger.yaml)
 ```

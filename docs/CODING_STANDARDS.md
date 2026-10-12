@@ -14,9 +14,11 @@ src/
 ├── core/             # Infrastruktur bersama (shared across modules)
 │   ├── exceptions/   # Custom exception classes
 │   ├── helpers/      # Utility/helper classes & functions
+│   ├── i18n/         # Kamus terjemahan message (en.json, id.json)
 │   ├── interfaces/   # Shared interfaces (base repository, etc.)
-│   └── middlewares/  # Hono middlewares
-├── jobs/             # Standalone scripts untuk scheduled tasks
+│   ├── middlewares/  # Hono middlewares
+│   └── templates/    # Template konten (email/, dsb)
+├── database/         # Migrasi (migrations/) & seeder (seeders/)
 ├── modules/          # Feature modules (domain-driven)
 │   └── {module}/
 │       ├── entities/       # TypeORM entity definitions
@@ -31,25 +33,30 @@ src/
 └── index.ts          # Application entry point
 ```
 
+> **Pengecualian yang disengaja**: module `content` menaruh controller dan service-nya di subfolder
+> `controllers/` dan `services/` karena menangani dua domain sekaligus (article & category).
+> Ini konvensi yang sah — module lain tetap memakai file datar `{module}.controller.ts` / `{module}.service.ts`.
+
 ---
 
 ## 2. Konvensi Penamaan File
 
 | Jenis File | Pola Nama | Contoh |
 |------------|-----------|--------|
-| Enum | `{nama}.enum.ts` (dalam folder `enum/`) | `type.enum.ts`, `salutation.enum.ts` |
-| Entity | `{nama}.entity.ts` | `user.entity.ts`, `contact.entity.ts` |
+| Enum | `{nama}.enum.ts` (dalam folder `enum/`) | `article-status.enum.ts` |
+| Entity | `{nama}.entity.ts` | `user.entity.ts`, `faq.entity.ts` |
 | Repository Interface | `{nama}.repository.interface.ts` | `user.repository.interface.ts` |
 | Repository Implementation | `{nama}.repository.ts` | `user.repository.ts` |
 | Service | `{nama}.service.ts` | `user.service.ts` |
-| Controller | `{nama}.controller.ts` | `contact.controller.ts` |
-| Module (DI Wiring) | `{nama}.module.ts` | `contact.module.ts` |
+| Controller | `{nama}.controller.ts` | `faq.controller.ts` |
+| Module (DI Wiring) | `{nama}.module.ts` | `faq.module.ts` |
 | Validator | `{nama}.validator.ts` | `auth.validator.ts` |
 | Serializer | `{nama}.serialize.ts` | `user.serialize.ts` |
+| Template Email | `{nama}.template.ts` (dalam folder `templates/email/`) | `forgot-password.template.ts` |
 | Middleware | `{nama}.middleware.ts` | `auth.middleware.ts` |
 | Config | `{nama}.ts` | `config.ts`, `database.ts` |
 
-> **PENTING**: Semua nama file menggunakan **kebab-case** untuk multi-word (contoh: `api-key.middleware.ts`, `reset-password.validator.ts`).
+> **PENTING**: Semua nama file menggunakan **kebab-case** untuk multi-word (contoh: `api-key.middleware.ts`, `forgot-password.template.ts`).
 
 ---
 
@@ -59,13 +66,13 @@ src/
 
 | Jenis | Pola | Contoh |
 |-------|------|--------|
-| Enum | `PascalCase`, deskriptif, tanpa prefix nama module | `ContactType`, `Salutation` |
-| Entity | `PascalCase` (singular) | `User`, `Contact` |
-| Repository Interface | `I{Nama}Repository` | `IUserRepository`, `IContactRepository` |
+| Enum | `PascalCase`, deskriptif, tanpa prefix nama module | `ArticleStatus` |
+| Entity | `PascalCase` (singular) | `User`, `Faq` |
+| Repository Interface | `I{Nama}Repository` | `IUserRepository`, `IFaqRepository` |
 | Repository Implementation | `TypeOrm{Nama}Repository` | `TypeOrmUserRepository` |
-| Service | `{Nama}Service` | `UserService`, `ContactService` |
-| Controller | `{Nama}Controller` | `AuthController`, `ContactController` |
-| Serializer | `{Nama}Serializer` | `UserSerializer`, `ContactSerializer` |
+| Service | `{Nama}Service` | `UserService`, `FaqService` |
+| Controller | `{Nama}Controller` | `AuthController`, `FaqController` |
+| Serializer | `{Nama}Serializer` | `UserSerializer`, `FaqSerializer` |
 | Exception | `{Nama}Exception` | `BaseException`, `NotFoundException` |
 | Helper (class) | `{Nama}Helper` atau `{Nama}` | `AuthHelper`, `MinioHelper` |
 
@@ -73,7 +80,7 @@ src/
 
 | Jenis | Pola | Contoh |
 |-------|------|--------|
-| Instance variables | `camelCase` | `userService`, `contactRepository` |
+| Instance variables | `camelCase` | `userService`, `faqRepository` |
 | Functions/Methods | `camelCase` | `getById`, `hashPassword` |
 | Constants | `camelCase` (config objects), `UPPER_SNAKE_CASE` (primitive) | `config`, `BUCKET` |
 | Exported singletons | `camelCase` | `mail`, `minio` |
@@ -82,10 +89,10 @@ src/
 
 ```typescript
 // Schema: PascalCase (sama dengan type name)
-export const CreateContactValidator = z.object({ ... })
+export const CreateFaqValidator = z.object({ ... })
 
 // Type: nama sama dengan schema (TypeScript type merging)
-export type CreateContactValidator = z.infer<typeof CreateContactValidator>
+export type CreateFaqValidator = z.infer<typeof CreateFaqValidator>
 ```
 
 > **Catatan**: Gunakan nama yang sama untuk Zod schema dan type-nya (TypeScript mendukung type merging).
@@ -129,7 +136,7 @@ export class EntityName {      // Nama class: PascalCase, singular
 
 | Aturan | Detail |
 |--------|--------|
-| Nama tabel | `snake_case`, **plural** (`users`, `contacts`) |
+| Nama tabel | `snake_case`, **plural** (`users`, `faqs`) |
 | Nama kolom | `snake_case` (`is_active`, `created_at`) |
 | Property entity | `camelCase` (`isActive`, `createdAt`) |
 | Mapping | Gunakan `{ name: "snake_case" }` jika berbeda |
@@ -140,12 +147,10 @@ export class EntityName {      // Nama class: PascalCase, singular
 ### Enum
 
 ```typescript
-// src/modules/contact/enum/type.enum.ts
-export enum ContactType {
-    CUSTOMER = 'customer',
-    VENDOR = 'vendor',
-    SUPPLIER = 'supplier',
-    OTHER = 'other',
+// src/modules/content/enum/article-status.enum.ts
+export enum ArticleStatus {
+    DRAFT = "draft",
+    PUBLISH = "publish",
 }
 ```
 
@@ -153,7 +158,7 @@ export enum ContactType {
 |--------|--------|
 | Folder | `enum/` di dalam module (singular, bukan `enums/`) |
 | Nama file | `{nama}.enum.ts`, deskriptif — tidak harus sama dengan nama module |
-| Nama class | `PascalCase`, deskriptif, **tanpa** prefix nama module (`ContactType`, bukan `ContactTypeEnum`) |
+| Nama class | `PascalCase`, deskriptif, **tanpa** prefix nama module (`ArticleStatus`, bukan `ArticleStatusEnum`) |
 | Value | String literal `lowercase`, sesuai nilai yang disimpan di database |
 | Isi file | Satu file enum = satu enum |
 | Pemakaian di entity | `@Column({ type: "enum", enum: XxxEnum, ... })` |
@@ -288,8 +293,12 @@ async getById(id: number) { ... }
 | Aturan | Detail |
 |--------|--------|
 | Indentation | 4 spasi |
-| Semicolons | Tidak wajib (konsisten tanpa semicolon) |
+| Semicolons | Tidak dipakai (konsisten tanpa semicolon) |
 | String quotes | Double quotes (`"..."`) |
 | Trailing comma | Tidak wajib |
 | Line length | Tidak ada hard limit, tapi jaga agar readable |
 | Blank lines | 1 blank line antara methods, 2 blank lines tidak digunakan |
+
+> **Pengecualian — file migrasi**: file di `src/database/migrations/` **dibiarkan memakai semicolon**
+> karena artefak historis yang sudah dijalankan di database. Jangan menyeragamkan style-nya,
+> cukup ikuti pola file migrasi di sekitarnya saat menambah migrasi baru.

@@ -55,10 +55,13 @@ src/core/
     "common": { "Success": "...", "Validation failed": "..." },
     "auth": { "User registered successfully": "..." },
     "user": { "User not found": "..." },
-    "contact": { "Contact not found": "..." },
+    "content": { "Article not found": "..." },
+    "rbac": { "Role not found": "..." },
     "validation": { "Name is required": "..." }
 }
 ```
+
+Grup yang ada saat ini: `common`, `auth`, `user`, `content`, `rbac`, `validation`.
 
 Nama grup (`common`, `auth`, `user`, ...) hanya untuk pengelompokan visual — **tidak dipakai sebagai key lookup**. Saat aplikasi start, `i18n.ts` me-flatten semua grup jadi satu lookup table datar: `messageInggris → terjemahan`. Grup boleh disesuaikan/ditambah bebas, yang penting **key (teks Inggris) di dalamnya sama persis di kedua file**.
 

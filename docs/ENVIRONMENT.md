@@ -235,20 +235,31 @@ Dikonfigurasi via `.gitignore`:
 
 ```
 node_modules/       # Dependencies
-.env               # Environment variables (RAHASIA)
-public/uploads     # Uploaded files
-database/          # Database files
-dist               # Build output
-logs/              # Application logs (JSON, per tanggal)
+.env                # Environment variables (RAHASIA)
+public/uploads      # Uploaded files (legacy — file sekarang disimpan di MinIO)
+dist                # Build output
+logs/               # Application logs (JSON, per tanggal)
 ```
 
 ---
 
-## 8. Static Files & Uploads
+## 8. File Upload & Object Storage
 
-- Uploads disajikan melalui: `GET /api/uploads/*`
-- Root directory: `./public/uploads/`
-- MinIO proxy: `GET /api/proxy?path={objectName}`
+Tidak ada penyajian file statis dari disk (tidak ada folder `public/uploads/`). Semua file disimpan di **MinIO**
+dan diakses lewat module `storage`:
+
+| Endpoint | Auth | Deskripsi |
+|----------|------|-----------|
+| `POST /api/upload` | ✅ Bearer | Upload file (multipart, field `file`) → mengembalikan `{ path }` object key relatif |
+| `GET /api/proxy?path={objectName}` | ❌ publik | Streaming object dari MinIO lewat backend (menghindari akses langsung ke MinIO) |
+
+Catatan:
+
+- Object key yang dikembalikan `POST /api/upload` (mis. `users/<uuid>.jpg`) yang disimpan di database.
+- `GET /api/proxy` tanpa query `path` mengembalikan error `400` dalam format `ApiResponse` standar.
+- Path object di database diubah menjadi URL yang bisa dipakai client oleh `resolveStorageUrl()`
+  (`src/core/helpers/storage-url.ts`) di layer serializer.
+- Implementasi handler ada di `src/modules/storage/` (`storage.controller.ts` + `storage.service.ts`).
 
 ---
 
@@ -261,7 +272,7 @@ Semua log ditulis sebagai **satu baris JSON per event** ke stdout/stderr — for
 Dicatat ke stdout untuk semua request, termasuk `requestId` (echo dari header `X-Request-Id` client atau digenerate baru):
 
 ```json
-{"timestamp":"2026-06-17T15:00:00.000Z","level":"info","service":"hono-be","environment":"production","message":"HTTP request","requestId":"...","method":"GET","path":"/api/contact","statusCode":200,"durationMs":12}
+{"timestamp":"2026-06-17T15:00:00.000Z","level":"info","service":"hono-be","environment":"production","message":"HTTP request","requestId":"...","method":"GET","path":"/api/content/articles","statusCode":200,"durationMs":12}
 ```
 
 ### File Log

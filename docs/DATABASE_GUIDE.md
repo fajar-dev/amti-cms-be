@@ -31,9 +31,9 @@ export const AppDataSource = new DataSource({
     username: config.database.user,
     password: config.database.pass,
     database: config.database.name,
-    synchronize: config.database.sync,  // true = auto-sync schema
-    entities: [User, Contact],          // ← Daftarkan semua entity di sini
-    migrations: [],
+    synchronize: config.database.sync,  // true = auto-sync schema (development saja)
+    entities: [User, PasswordResetToken, Category, Article, ArticleView, Faq, Role, Permission, Setting, Message],
+    migrations: [__dirname + "/../database/migrations/*{.ts,.js}"],
     subscribers: [],
 })
 ```
@@ -41,13 +41,62 @@ export const AppDataSource = new DataSource({
 ### Aturan Penting
 
 - **Selalu daftarkan entity baru** di array `entities`
-- `synchronize: true` — Gunakan hanya di **development**. Di production, set `DB_SYNC=false`
+- `synchronize: true` — gunakan hanya di **development**. Di production, `DB_SYNC` otomatis dipaksa `false`
 - Entity diimport langsung (bukan glob pattern)
-- Migrations belum diimplementasikan — gunakan `synchronize` untuk development
+- **Migrasi sudah diimplementasikan** — lihat §3. Di production gunakan migrasi, bukan `synchronize`
+- DataSource bisa di-override saat test lewat `setDataSource()` (lihat `test/setup.ts`)
 
 ---
 
-## 3. Entity Conventions
+## 3. Migrasi & Seeder
+
+### Migrasi
+
+Semua tabel dibuat lewat migrasi di `src/database/migrations/` dengan prinsip **1 entity = 1 migrasi**,
+berurutan sesuai timestamp (1791364316001 s/d 1791364316011):
+
+| Migrasi | Tabel |
+|---------|-------|
+| `1791364316001-CreateRolesTable.ts` | `roles` |
+| `1791364316002-CreatePermissionsTable.ts` | `permissions` |
+| `1791364316003-CreateRolePermissionsTable.ts` | `role_permissions` (junction) |
+| `1791364316004-CreateUsersTable.ts` | `users` (termasuk FK `role_id`) |
+| `1791364316005-CreatePasswordResetTokensTable.ts` | `password_reset_tokens` |
+| `1791364316006-CreateCategoriesTable.ts` | `categories` |
+| `1791364316007-CreateArticlesTable.ts` | `articles` |
+| `1791364316008-CreateArticleViewsTable.ts` | `article_views` |
+| `1791364316009-CreateFaqsTable.ts` | `faqs` |
+| `1791364316010-CreateSettingsTable.ts` | `settings` |
+| `1791364316011-CreateMessagesTable.ts` | `messages` |
+
+Semua migrasi **kompatibel dengan PostgreSQL dan MySQL** (percabangan `isPostgres` di dalam `up()`).
+
+```bash
+bun run migration:run       # jalankan migrasi yang belum dieksekusi
+bun run migration:show      # lihat status migrasi
+bun run migration:revert    # rollback migrasi terakhir
+bun run migration:generate  # generate migrasi dari perubahan entity
+bun run migration:create    # buat file migrasi kosong
+```
+
+> File migrasi **dibiarkan memakai semicolon** (artefak historis) — lihat pengecualian style di `docs/CODING_STANDARDS.md` §9.
+
+### Seeder
+
+Seeder ada di `src/database/seeders/` dan memakai `logger` (output CLI-nya JSON, bukan `console.log`):
+
+```bash
+bun run seed            # jalankan semua seeder (index.ts)
+bun run seed:rbac       # permissions & roles default
+bun run seed:users      # user default
+bun run seed:settings   # settings default
+```
+
+`sample-data.seeder.ts` (data contoh: category, article, view, message) hanya dipanggil dari master seeder `index.ts`.
+
+---
+
+## 4. Entity Conventions
 
 ### Template Entity Standar
 
@@ -113,7 +162,7 @@ export class EntityName {           // PascalCase, singular
 
 ---
 
-## 4. Repository Pattern
+## 5. Repository Pattern
 
 ### Interface → Implementation
 
@@ -129,11 +178,15 @@ IInvoiceRepository (interface)
 
 | Method | Return Type | Deskripsi |
 |--------|------------|-----------|
-| `findAll(page, limit, q, sortBy?, order?)` | `Promise<{ data: T[]; total: number }>` | List dengan pagination + sorting (lihat §5) |
+| `findAll(page, limit, q, sortBy?, order?)` | `Promise<{ data: T[]; total: number }>` | List dengan pagination + sorting (lihat §6) |
 | `findById(id)` | `Promise<T \| null>` | Cari by ID |
 | `save(data, manager?)` | `Promise<T>` | Simpan (create/update) |
 | `merge(entity, data)` | `T` | Merge data partial ke entity |
 | `delete(id)` | `Promise<void>` | Hapus by ID |
+
+> **`IBaseRepository<T>` opsional.** 7 repository memakai kontrak dasar ini lewat `extends IBaseRepository<T>`;
+> repository read-only/agregat (`IRoleRepository`, `IPermissionRepository`, `ISettingRepository`, `IDashboardRepository`)
+> mendeklarasikan method sendiri karena bentuknya memang berbeda.
 
 ### Transaction Support
 
@@ -156,7 +209,7 @@ async save(data: Partial<T>, manager?: EntityManager): Promise<T> {
 
 ---
 
-## 5. Query Builder Patterns
+## 6. Query Builder Patterns
 
 ### Basic Pagination dengan Search dan Sorting
 
@@ -201,6 +254,8 @@ const order = c.req.query("order")?.toUpperCase() === "ASC" ? "ASC" : "DESC"
 ```
 
 > Kalau repository pakai `.getRawMany()` (select manual dengan `AS` alias, contoh: `UserRepository`), `SORTABLE_COLUMNS` harus mengarah ke nama kolom SQL asli (`alias.is_active`, `alias.created_at`), bukan nama alias hasil `AS`.
+
+> **Default `order` berbeda antar module dan itu disengaja**: `faq` & `rbac` default `ASC` (konten terkurasi / daftar referensi), sedangkan `article`, `category`, `user`, dan `message` default `DESC` (data terbaru di atas).
 
 ### Filter Query
 
@@ -251,52 +306,198 @@ query.orderBy(finalSort, finalOrder)
 
 ---
 
-## 6. Entity yang Ada
+## 7. Entity yang Ada
 
-### User Entity
+### users (`User`)
 
 | Kolom | Tipe | Nullable | Default | Notes |
 |-------|------|----------|---------|-------|
 | `id` | int (PK, auto) | ❌ | auto | |
 | `name` | varchar | ❌ | - | |
-| `photo` | varchar | ✅ | null | Path di MinIO |
+| `photo` | varchar | ✅ | null | Path object storage (MinIO) |
 | `email` | varchar (unique) | ❌ | - | |
 | `password` | varchar | ✅ | null | `select: false`, hashed |
-| `reset_password_token` | varchar | ✅ | null | |
-| `reset_password_expires` | timestamp | ✅ | null | |
+| `is_active` | boolean | ❌ | true | |
+| `role_id` | int (FK → `roles.id`) | ✅ | null | `ON DELETE SET NULL`, index `IDX_users_role_id` |
+| `created_at` | timestamp | ❌ | auto | |
+| `updated_at` | timestamp | ❌ | auto | |
+
+> Kolom `reset_password_token` / `reset_password_expires` **sudah tidak ada** di tabel `users` —
+> token reset password dipindah ke tabel `password_reset_tokens` (mendukung multi-token simultan).
+
+### password_reset_tokens (`PasswordResetToken`)
+
+| Kolom | Tipe | Nullable | Default | Notes |
+|-------|------|----------|---------|-------|
+| `id` | int (PK, auto) | ❌ | auto | |
+| `email` | varchar(255) | ❌ | - | Index |
+| `token` | varchar(255) | ❌ | - | Index |
+| `expires_at` | timestamp | ❌ | - | |
+| `created_at` | timestamp | ❌ | auto | |
+| `updated_at` | timestamp | ❌ | auto | |
+
+### roles (`Role`)
+
+| Kolom | Tipe | Nullable | Default | Notes |
+|-------|------|----------|---------|-------|
+| `id` | int (PK, auto) | ❌ | auto | |
+| `name` | varchar (unique) | ❌ | - | Pengenal peran |
+| `description` | varchar | ✅ | null | |
+| `created_at` | timestamp | ❌ | auto | |
+| `updated_at` | timestamp | ❌ | auto | |
+
+Relasi: `permissions` (`@ManyToMany` → `permissions` via `role_permissions`), `users` (`@OneToMany` dari `User.role`).
+
+### permissions (`Permission`)
+
+| Kolom | Tipe | Nullable | Default | Notes |
+|-------|------|----------|---------|-------|
+| `id` | int (PK, auto) | ❌ | auto | |
+| `name` | varchar (unique) | ❌ | - | Mis. `users.view` |
+| `module` | varchar | ❌ | - | Grup module (mis. `users`) |
+| `description` | varchar | ✅ | null | |
+| `created_at` | timestamp | ❌ | auto | |
+| `updated_at` | timestamp | ❌ | auto | |
+
+### role_permissions (junction)
+
+Tabel pivot `@ManyToMany` dengan `@JoinTable` di `Role` — tidak punya entity class sendiri:
+
+| Kolom | Tipe | Notes |
+|-------|------|-------|
+| `role_id` | int (FK → `roles.id`) | `joinColumn` |
+| `permission_id` | int (FK → `permissions.id`) | `inverseJoinColumn` |
+
+### categories (`Category`)
+
+| Kolom | Tipe | Nullable | Default | Notes |
+|-------|------|----------|---------|-------|
+| `id` | int (PK, auto) | ❌ | auto | |
+| `name` | varchar(255) | ❌ | - | |
+| `slug` | varchar(255, unique) | ❌ | - | Auto-generate via `slugify()` |
+| `description` | text | ✅ | null | |
+| `created_at` | timestamp | ❌ | auto | |
+| `updated_at` | timestamp | ❌ | auto | |
+
+Relasi: `articles` (`@OneToMany` dari `Article.category`).
+
+### articles (`Article`)
+
+| Kolom | Tipe | Nullable | Default | Notes |
+|-------|------|----------|---------|-------|
+| `id` | int (PK, auto) | ❌ | auto | |
+| `author_id` | int (FK → `users.id`) | ✅ | null | `ON DELETE SET NULL`, index `IDX_articles_author_id` |
+| `category_id` | int (FK → `categories.id`) | ✅ | null | `ON DELETE SET NULL`, index |
+| `title` | varchar(255) | ❌ | - | |
+| `slug` | varchar(255, unique) | ❌ | - | Auto-generate via `slugify()`, anti-duplikat |
+| `cover` | varchar(255) | ✅ | null | Path object storage |
+| `content` | text | ❌ | - | |
+| `tags` | json | ✅ | null | Array string |
+| `status` | enum (`draft`, `publish`) | ❌ | `draft` | `ArticleStatus` |
+| `description` | text | ✅ | null | Ringkasan artikel |
+| `views_count` | int | ❌ | 0 | Counter metrik pembaca |
+| `published_at` | timestamp | ✅ | null | Diisi saat pertama kali `publish` |
+| `created_at` | timestamp | ❌ | auto | |
+| `updated_at` | timestamp | ❌ | auto | |
+
+Relasi: `author` (`@ManyToOne` → `User`), `category` (`@ManyToOne` → `Category`), `views` (`@OneToMany` → `ArticleView`).
+
+### article_views (`ArticleView`)
+
+| Kolom | Tipe | Nullable | Default | Notes |
+|-------|------|----------|---------|-------|
+| `id` | int (PK, auto) | ❌ | auto | |
+| `article_id` | int (FK → `articles.id`) | ❌ | - | `ON DELETE CASCADE`, index `IDX_article_views_article_id` |
+| `ip_address` | varchar(45) | ✅ | null | Resolusi via `resolveClientIp()` |
+| `user_agent` | text | ✅ | null | |
+| `referrer` | varchar(500) | ✅ | null | |
+| `user_id` | int | ✅ | null | Diisi jika request terautentikasi (tanpa FK) |
+| `viewed_at` | timestamp | ❌ | auto | `@CreateDateColumn` |
+
+> Tabel ini **tidak** punya `created_at`/`updated_at` — satu-satunya timestamp-nya `viewed_at`.
+
+### faqs (`Faq`)
+
+| Kolom | Tipe | Nullable | Default | Notes |
+|-------|------|----------|---------|-------|
+| `id` | int (PK, auto) | ❌ | auto | |
+| `question` | varchar(500) | ❌ | - | |
+| `answer` | text | ❌ | - | |
+| `order` | int | ❌ | 0 | Urutan tampil (default sort `ASC`) |
 | `is_active` | boolean | ❌ | true | |
 | `created_at` | timestamp | ❌ | auto | |
 | `updated_at` | timestamp | ❌ | auto | |
 
-### Contact Entity
+### settings (`Setting`)
+
+Single-row: hanya ada satu baris konfigurasi website.
 
 | Kolom | Tipe | Nullable | Default | Notes |
 |-------|------|----------|---------|-------|
 | `id` | int (PK, auto) | ❌ | auto | |
-| `name` | varchar | ❌ | - | |
-| `email` | varchar | ✅ | null | |
-| `phone` | varchar | ✅ | null | |
+| `site_name` | varchar(255) | ❌ | `"AMTI"` | |
+| `site_description` | text | ✅ | null | |
+| `meta_keywords` | text | ✅ | null | |
+| `author` | varchar(255) | ✅ | null | |
+| `copyright` | varchar(255) | ✅ | null | |
+| `logo` | varchar(500) | ✅ | null | Path object storage |
+| `favicon` | varchar(500) | ✅ | null | Path object storage |
+| `og_image` | varchar(500) | ✅ | null | Path object storage |
+| `phone` | varchar(50) | ✅ | null | |
+| `email` | varchar(255) | ✅ | null | |
+| `address` | text | ✅ | null | |
+| `facebook` | varchar(500) | ✅ | null | |
+| `instagram` | varchar(500) | ✅ | null | |
+| `tiktok` | varchar(500) | ✅ | null | |
+| `linkedin` | varchar(500) | ✅ | null | |
+| `twitter` | varchar(500) | ✅ | null | |
+| `youtube` | varchar(500) | ✅ | null | |
+| `created_at` | timestamp | ❌ | auto | |
+| `updated_at` | timestamp | ❌ | auto | |
+
+### messages (`Message`)
+
+| Kolom | Tipe | Nullable | Default | Notes |
+|-------|------|----------|---------|-------|
+| `id` | int (PK, auto) | ❌ | auto | |
+| `name` | varchar(255) | ❌ | - | |
+| `email` | varchar(255) | ❌ | - | |
+| `phone` | varchar(50) | ✅ | null | |
+| `subject` | varchar(255) | ❌ | - | |
+| `message` | text | ❌ | - | |
+| `is_read` | boolean | ❌ | false | |
 | `created_at` | timestamp | ❌ | auto | |
 | `updated_at` | timestamp | ❌ | auto | |
 
 ---
 
-## 7. Relasi (Belum Diimplementasikan)
+## 8. Relasi
 
-Proyek saat ini belum menggunakan relasi TypeORM. Jika diperlukan:
+Relasi TypeORM **sudah diimplementasikan** dan dipakai di entity, repository, maupun serializer.
+Yang tersedia saat ini: `@ManyToOne`, `@OneToMany`, dan `@ManyToMany` dengan `@JoinTable`.
 
 ```typescript
-// One-to-Many
-@OneToMany(() => Invoice, invoice => invoice.user)
-invoices!: Invoice[]
+// Many-to-One + kolom FK eksplisit (contoh: Article → Category)
+@Index()
+@Column({ name: "category_id", nullable: true })
+categoryId?: number | null
 
-// Many-to-One
-@ManyToOne(() => User, user => user.invoices)
-@JoinColumn({ name: "user_id" })
-user!: User
+@ManyToOne(() => Category, (category) => category.articles, { onDelete: "SET NULL", nullable: true })
+@JoinColumn({ name: "category_id" })
+category?: Category | null
 
-@Column({ name: "user_id" })
-userId!: number
+// One-to-Many (sisi sebaliknya)
+@OneToMany("Article", "category")
+articles?: Article[]
+
+// Many-to-Many dengan junction table eksplisit (contoh: Role ↔ Permission)
+@ManyToMany(() => Permission, (permission) => permission.roles)
+@JoinTable({
+    name: "role_permissions",
+    joinColumn: { name: "role_id", referencedColumnName: "id" },
+    inverseJoinColumn: { name: "permission_id", referencedColumnName: "id" },
+})
+permissions!: Permission[]
 ```
 
 ### Konvensi Relasi
@@ -304,4 +505,6 @@ userId!: number
 - Foreign key column: `{entity}_id` (snake_case)
 - Property FK: `{entity}Id` (camelCase)
 - `@JoinColumn` wajib dengan `{ name: "fk_column" }`
-- Gunakan **eager loading** secara default hanya jika diperlukan
+- Tentukan `onDelete` secara eksplisit: `CASCADE` (child selalu ikut parent, mis. `article_views`) atau `SET NULL` (relasi opsional, mis. `articles.category_id`)
+- Tambahkan `@Index()` pada kolom FK yang sering dipakai untuk filter
+- **Tidak** memakai eager loading — relasi dimuat eksplisit via `relations: [...]` atau `leftJoinAndSelect` di repository

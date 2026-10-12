@@ -32,7 +32,7 @@ bun test
 
 # Jalankan file test tertentu
 bun test test/auth.test.ts
-bun test test/contact.test.ts
+bun test test/faq.test.ts
 ```
 
 ### Environment Variables untuk Test
@@ -42,6 +42,11 @@ bun test test/contact.test.ts
 | `DB_TYPE` | dari `config.database.type` | Tipe database (`postgres` \| `mysql`) |
 | `DB_TEST_NAME` | `amti_be_test` | Nama database untuk test |
 | `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASS` | dari `.env` | Koneksi database (sama dengan development) |
+
+> **Pengecualian aturan `process.env`**: akses `process.env` langsung **diizinkan di harness test**
+> (`test/setup.ts`) karena test harus bisa membaca `DB_TYPE`/`DB_TEST_NAME` sebelum `config` dipakai —
+> file ini bukan app code. Di seluruh `src/`, `process.env` tetap **hanya** boleh diakses lewat
+> `config` dari `src/config/config.ts`.
 
 ---
 
@@ -61,8 +66,19 @@ test/
 ├── setup.ts          # Test infrastructure (DB, app factory, helpers)
 ├── helpers.ts        # Data factories & assertion utilities
 ├── auth.test.ts      # Auth module E2E tests
-└── contact.test.ts   # Contact module E2E tests
+├── user.test.ts      # User module E2E tests
+├── content.test.ts   # Content module E2E tests (article & category)
+├── faq.test.ts       # FAQ module E2E tests
+├── rbac.test.ts      # RBAC module E2E tests
+├── setting.test.ts   # Setting module E2E tests
+├── message.test.ts   # Message module E2E tests
+├── dashboard.test.ts # Dashboard module E2E tests
+├── language.test.ts  # Language detection & i18n E2E tests
+├── logger.test.ts    # Structured logger & access log tests
+└── email.test.ts     # Email template unit tests
 ```
+
+Total saat ini: **154 test di 11 file** (`test/helpers.ts` dan `test/setup.ts` bukan file test).
 
 ### Dependency Flow
 
@@ -261,7 +277,7 @@ describe("Full CRUD Lifecycle", () => {
         const { headers } = await registerAndLogin(app)
 
         // Create → Read → Update → Read → Delete → Verify Deleted
-        // ... (lihat contact.test.ts sebagai referensi)
+        // ... (lihat faq.test.ts sebagai referensi)
     })
 })
 ```
@@ -290,7 +306,7 @@ export function createInvoiceData(overrides: Record<string, any> = {}) {
 // Jangan lupa reset di resetCounters():
 export function resetCounters() {
     userCounter = 0
-    contactCounter = 0
+    faqCounter = 0
     invoiceCounter = 0  // ← Tambahkan
 }
 ```
@@ -315,13 +331,13 @@ export function resetCounters() {
 
 ```typescript
 // ✅ Format: "should {expected behavior}"
-test("should create a contact successfully", ...)
-test("should fail validation without name", ...)
-test("should return 404 for non-existent contact", ...)
+test("should create a faq successfully", ...)
+test("should fail validation without question", ...)
+test("should return 404 for non-existent faq", ...)
 test("should fail without auth token", ...)
 
 // ❌ JANGAN format yang ambigu
-test("create contact", ...)        // Apa yang ditest?
+test("create faq", ...)            // Apa yang ditest?
 test("test validation", ...)       // Validation apa?
 ```
 
@@ -358,7 +374,7 @@ expect(body.meta.currentPage).toBe(1)
 ## 6. Checklist Test untuk Module Baru
 
 ```
-☐ Buat file test//{module}.test.ts
+☐ Buat file test/{module}.test.ts
 ☐ Tambahkan data factory di test/helpers.ts
 ☐ Test: Auth Required (semua endpoint)
 ☐ Test: Create (success + validation errors)

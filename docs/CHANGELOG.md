@@ -6,6 +6,35 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — 2026-10-12
+
+### Added
+- Helper bersama di `src/core/helpers/`: `slug.ts` (`slugify()` untuk generasi slug artikel & kategori), `storage-url.ts` (`resolveStorageUrl()` dengan opsi `passthroughAbsolute` dan `fallbackToPath` untuk presigned URL object storage), dan `client-ip.ts` (`resolveClientIp()` dengan opsi `fallbackToSocket` untuk resolusi IP client di belakang proxy).
+- Middleware `optionalJsonBody()` di `src/core/middlewares/optional-json.middleware.ts` — memvalidasi body JSON yang boleh kosong/rusak (dianggap `{}`) lalu mendaftarkannya via `c.req.addValidatedData("json", ...)`.
+- Exception `InternalServerException` (500) di `src/core/exceptions/base.ts` untuk error tak terduga / kegagalan dependency eksternal.
+- Module `storage` (`src/modules/storage/`: `storage.service.ts`, `storage.controller.ts`, `storage.module.ts`) — memindahkan handler upload & proxy yang sebelumnya inline di `src/routes/api.ts` ke layer service/controller. Module ini tidak punya entity/repository.
+
+### Changed
+- Seluruh serializer yang menampilkan cover/avatar/file kini memakai helper bersama `resolveStorageUrl()` alih-alih logika presigned URL masing-masing.
+- Service update (`ArticleService`, `CategoryService`, `FaqService`, `MessageService`, `UserService`) memakai `repository.merge()` untuk update, menggantikan penyalinan field manual.
+- Referensi kolom TypeORM diseragamkan memakai **nama property entity** (`camelCase`) alih-alih nama kolom database (`snake_case`) — termasuk whitelist `SORTABLE_COLUMNS` di repository.
+- `dashboard.serializer.ts` di-rename menjadi `dashboard.serialize.ts` agar konsisten dengan pola `{nama}.serialize.ts`.
+- Seluruh seeder (`src/database/seeders/`) memakai `logger` (output JSON) alih-alih `console.log`.
+- Standarisasi style: double quotes, indentasi 4 spasi, tanpa semicolon, dan urutan import yang konsisten di seluruh `src/`.
+- Tipe `any` di repository, service, dan serializer diganti tipe riil. Sisa `any` hanya di batas framework (`exceptions/base.ts`, `helpers/response.ts`, `helpers/validator.ts`, `helpers/auth.ts`).
+- Service tidak lagi mengembalikan `true` yang tidak bermakna; method yang hanya melakukan aksi kini bertipe `Promise<void>`.
+- `role.validator.ts` mengekspor tipe hasil `z.infer` (`CreateRoleValidator`, `UpdateRoleValidator`) agar controller dan service tidak menduplikasi definisi tipe.
+
+### Fixed
+- `POST /api/content/articles/:id/view` kini memakai `c.req.valid()` di controller (bukan `c.req.json()`), sehingga Zod validation tetap berjalan — namun tetap toleran terhadap body kosong lewat `optionalJsonBody()`.
+- `GET /api/proxy` tanpa parameter `path` kini mengembalikan response dengan format `ApiResponse` standar (sebelumnya format ad-hoc).
+- `src/core/helpers/mail.ts` tidak lagi melempar `Error` generik (kini `InternalServerException`) dan tidak lagi membocorkan detail SMTP ke response client — detail teknis hanya masuk log.
+
+### Removed
+- Folder placeholder `src/jobs/` yang tidak terpakai.
+
+---
+
 ## [Unreleased] — 2026-10-08
 
 ### Added

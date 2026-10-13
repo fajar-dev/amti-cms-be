@@ -27,6 +27,23 @@ export class FaqController {
         return ApiResponse.paginate(c, FaqSerializer.collection(data), total, page, limit, "FAQs retrieved successfully")
     }
 
+    async publicIndex(c: Context) {
+        const page = Number(c.req.query("page") || 1)
+        const limit = Number(c.req.query("limit") || 100)
+        const q = c.req.query("q") || ""
+
+        const { data, total } = await this.service.getAll(
+            page,
+            limit,
+            q,
+            { isActive: true },
+            "order",
+            "ASC"
+        )
+
+        return ApiResponse.paginate(c, FaqSerializer.collection(data), total, page, limit, "Public FAQs retrieved successfully")
+    }
+
     async show(c: Context) {
         const id = Number(c.req.param("id"))
         const faq = await this.service.getById(id)

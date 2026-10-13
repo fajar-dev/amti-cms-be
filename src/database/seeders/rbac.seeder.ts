@@ -44,6 +44,11 @@ export const defaultPermissions = [
     { name: "messages.view", module: "Messages", description: "View contact messages and inquiries" },
     { name: "messages.update", module: "Messages", description: "Update message status (read/unread)" },
     { name: "messages.delete", module: "Messages", description: "Delete messages" },
+    // Clients
+    { name: "clients.view", module: "Clients", description: "View clients list and details" },
+    { name: "clients.create", module: "Clients", description: "Create new client" },
+    { name: "clients.update", module: "Clients", description: "Update existing client" },
+    { name: "clients.delete", module: "Clients", description: "Delete client" },
 ]
 
 export const defaultRoles = [

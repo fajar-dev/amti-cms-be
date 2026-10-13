@@ -6,6 +6,40 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).
 
 ---
 
+## [Unreleased] — 2026-10-13
+
+### Added
+- Modul Manajemen Klien & Mitra (`src/modules/client/`):
+  - Entity `Client` (`id`, `name`, `logo`, `website`, `order`, `isActive`, `createdAt`, `updatedAt`).
+  - Migration database `CreateClientsTable` (`1791364316013-CreateClientsTable.ts`).
+  - Repository & Service dengan filtering (`isActive`, pencarian `q` pada nama dan website), sorting, dan paginasi.
+  - Serializer `ClientSerializer` mendukung MinIO presigned URL serta static asset path passthrough.
+  - Endpoint publik `GET /api/clients` dan `GET /api/clients/public` (hanya klien aktif diurutkan berdasarkan `order`).
+  - Endpoint terproteksi RBAC: `GET /api/client`, `GET /api/client/:id`, `POST /api/client`, `PUT /api/client/:id`, `DELETE /api/client/:id`.
+  - Permission RBAC baru: `clients.view`, `clients.create`, `clients.update`, `clients.delete` ditambahkan ke `rbac.seeder.ts`.
+  - 12 unit & integration test di `test/client.test.ts`.
+  - Dokumentasi OpenAPI lengkap di `swagger.yaml`.
+
+---
+
+## [Unreleased] — 2026-10-12 (website publik)
+
+### Added
+- Endpoint publik `GET /api/articles` untuk website publik (tanpa autentikasi). Status artikel
+  **dipaksa `publish` di service layer** (`ArticleService.getPublished()`), jadi draft tidak mungkin
+  bocor walau client mengirim parameter `status`. Mendukung paginasi, pencarian (`q`), filter
+  `categoryId`, serta `sortBy`/`order`.
+- `ArticleSerializer.publicCard()` / `publicCollection()` — bentuk ringkas artikel untuk daftar di
+  website: `content` (isi HTML penuh) sengaja tidak disertakan agar payload daftar tetap kecil.
+  Isi lengkap tetap tersedia lewat endpoint publik yang sudah ada, `GET /content/articles/slug/:slug`.
+- 6 test E2E baru di `test/content.test.ts`: akses tanpa token, hanya artikel publish yang tampil,
+  filter `status` dari query diabaikan, `content` tidak ikut terkirim, pencarian + filter kategori,
+  dan paginasi.
+- Dokumentasi OpenAPI untuk `/articles` + skema `PublicArticleCard` + tag `Public Website` di
+  `swagger.yaml`.
+
+---
+
 ## [Unreleased] — 2026-10-12
 
 ### Added

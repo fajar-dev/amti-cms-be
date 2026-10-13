@@ -46,7 +46,7 @@ export class ArticleService {
         private readonly articleRepository: IArticleRepository,
         private readonly categoryRepository: ICategoryRepository,
         private readonly articleViewRepository: IArticleViewRepository
-    ) {}
+    ) { }
 
     async getAll(
         page: number,
@@ -57,6 +57,24 @@ export class ArticleService {
         order?: SortOrder
     ): Promise<{ data: Article[]; total: number }> {
         return await this.articleRepository.findAll(page, limit, q, filters, sortBy, order)
+    }
+
+    async getPublished(
+        page: number,
+        limit: number,
+        q: string = "",
+        filters: Omit<ArticleListFilters, "status"> = {},
+        sortBy?: string,
+        order?: SortOrder
+    ): Promise<{ data: Article[]; total: number }> {
+        return await this.articleRepository.findAll(
+            page,
+            limit,
+            q,
+            { ...filters, status: ArticleStatus.PUBLISH },
+            sortBy,
+            order
+        )
     }
 
     async getById(id: number): Promise<Article> {

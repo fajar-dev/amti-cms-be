@@ -40,11 +40,17 @@ export class Setting {
     @Column({ type: "varchar", length: 50, nullable: true, name: "phone" })
     phone?: string | null
 
+    @Column({ type: "varchar", length: 50, nullable: true, name: "whatsapp" })
+    whatsapp?: string | null
+
     @Column({ type: "varchar", length: 255, nullable: true, name: "email" })
     email?: string | null
 
     @Column({ type: "text", nullable: true, name: "address" })
     address?: string | null
+
+    @Column({ type: "text", nullable: true, name: "maps_url" })
+    mapsUrl?: string | null
 
     // ── Social Media ───────────────────────────────────────────────────────────
     @Column({ type: "varchar", length: 500, nullable: true, name: "facebook" })

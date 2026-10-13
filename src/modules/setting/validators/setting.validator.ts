@@ -13,11 +13,13 @@ export const UpdateSettingMetaValidator = z.object({
 
 export const UpdateSettingContactValidator = z.object({
     phone: z.string().trim().max(50).nullable().optional(),
+    whatsapp: z.string().trim().max(50).nullable().optional(),
     email: z.preprocess(
         (val) => (val === "" ? null : val),
         z.string().trim().email("Invalid email address").max(255).nullable().optional()
     ),
     address: z.string().trim().max(1000).nullable().optional(),
+    mapsUrl: z.string().trim().max(2000).nullable().optional(),
 })
 
 export const UpdateSettingSocialValidator = z.object({
@@ -39,11 +41,13 @@ export const UpdateSettingValidator = z.object({
     favicon: z.string().trim().max(500).nullable().optional(),
     ogImage: z.string().trim().max(500).nullable().optional(),
     phone: z.string().trim().max(50).nullable().optional(),
+    whatsapp: z.string().trim().max(50).nullable().optional(),
     email: z.preprocess(
         (val) => (val === "" ? null : val),
         z.string().trim().email("Invalid email address").max(255).nullable().optional()
     ),
     address: z.string().trim().max(1000).nullable().optional(),
+    mapsUrl: z.string().trim().max(2000).nullable().optional(),
     facebook: z.string().trim().max(500).nullable().optional(),
     instagram: z.string().trim().max(500).nullable().optional(),
     tiktok: z.string().trim().max(500).nullable().optional(),

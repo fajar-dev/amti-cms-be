@@ -409,3 +409,118 @@ describe("Content - Article Views API", () => {
         expect(viewsListRes.body.data.length).toBe(2)
     })
 })
+
+// ═══════════════════════════════════════════════════════════════════════════
+// Public Articles API (website) — GET /api/articles
+// ═══════════════════════════════════════════════════════════════════════════
+
+describe("Public Articles API", () => {
+    test("should be accessible without authentication", async () => {
+        const { status, body } = await request(app, "/api/articles")
+
+        expect(status).toBe(200)
+        expect(body.success).toBe(true)
+        expect(Array.isArray(body.data)).toBe(true)
+        expect(body.meta).toBeDefined()
+    })
+
+    test("should only return published articles and never leak drafts", async () => {
+        await request(app, "/api/content/articles", {
+            method: "POST",
+            headers: authHeaders,
+            body: { title: "Published One", content: "body", status: "publish" },
+        })
+        await request(app, "/api/content/articles", {
+            method: "POST",
+            headers: authHeaders,
+            body: { title: "Still A Draft", content: "body", status: "draft" },
+        })
+
+        const { body } = await request(app, "/api/articles")
+
+        expect(body.meta.total).toBe(1)
+        expect(body.data.length).toBe(1)
+        expect(body.data[0].title).toBe("Published One")
+        expect(body.data.some((a: any) => a.title === "Still A Draft")).toBe(false)
+    })
+
+    test("should ignore a status filter from the query (status is forced to publish)", async () => {
+        await request(app, "/api/content/articles", {
+            method: "POST",
+            headers: authHeaders,
+            body: { title: "Draft Target", content: "body", status: "draft" },
+        })
+
+        const { body } = await request(app, "/api/articles?status=draft")
+
+        expect(body.meta.total).toBe(0)
+        expect(body.data.length).toBe(0)
+    })
+
+    test("should omit the full article content but keep the card fields", async () => {
+        await request(app, "/api/content/articles", {
+            method: "POST",
+            headers: authHeaders,
+            body: {
+                title: "Card Fields",
+                content: "<p>Very long body that should not be in the listing</p>",
+                description: "Short summary",
+                status: "publish",
+            },
+        })
+
+        const { body } = await request(app, "/api/articles")
+        const card = body.data[0]
+
+        expect(card.content).toBeUndefined()
+        expect(card.title).toBe("Card Fields")
+        expect(card.slug).toBe("card-fields")
+        expect(card.description).toBe("Short summary")
+        expect(card.publishedAt).toBeTruthy()
+    })
+
+    test("should support search and category filter", async () => {
+        const catRes = await request(app, "/api/content/categories", {
+            method: "POST",
+            headers: authHeaders,
+            body: { name: "Public Category" },
+        })
+        const categoryId = catRes.body.data.id
+
+        await request(app, "/api/content/articles", {
+            method: "POST",
+            headers: authHeaders,
+            body: { title: "Bridge Monitoring", content: "body", status: "publish", categoryId },
+        })
+        await request(app, "/api/content/articles", {
+            method: "POST",
+            headers: authHeaders,
+            body: { title: "Unrelated News", content: "body", status: "publish" },
+        })
+
+        const search = await request(app, "/api/articles?q=Bridge")
+        expect(search.body.meta.total).toBe(1)
+        expect(search.body.data[0].title).toBe("Bridge Monitoring")
+
+        const filtered = await request(app, `/api/articles?categoryId=${categoryId}`)
+        expect(filtered.body.meta.total).toBe(1)
+        expect(filtered.body.data[0].category.name).toBe("Public Category")
+    })
+
+    test("should paginate published articles", async () => {
+        for (let i = 1; i <= 3; i++) {
+            await request(app, "/api/content/articles", {
+                method: "POST",
+                headers: authHeaders,
+                body: { title: `Public Article ${i}`, content: "body", status: "publish" },
+            })
+        }
+
+        const { body } = await request(app, "/api/articles?page=1&limit=2")
+
+        expect(body.data.length).toBe(2)
+        expect(body.meta.total).toBe(3)
+        expect(body.meta.lastPage).toBe(2)
+        expect(body.meta.perPage).toBe(2)
+    })
+})

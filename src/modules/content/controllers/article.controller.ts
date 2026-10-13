@@ -40,6 +40,27 @@ export class ArticleController {
         return ApiResponse.success(c, serialized, "Article retrieved successfully")
     }
 
+    async publicIndex(c: Context) {
+        const page = Number(c.req.query("page") || 1)
+        const limit = Number(c.req.query("limit") || 9)
+        const q = c.req.query("q") || ""
+        const categoryId = c.req.query("categoryId") ? Number(c.req.query("categoryId")) : undefined
+        const sortBy = c.req.query("sortBy") || undefined
+        const order = c.req.query("order")?.toUpperCase() === "ASC" ? "ASC" : "DESC"
+
+        const { data, total } = await this.service.getPublished(
+            page,
+            limit,
+            q,
+            { categoryId },
+            sortBy,
+            order
+        )
+
+        const serialized = await ArticleSerializer.publicCollection(data)
+        return ApiResponse.paginate(c, serialized, total, page, limit, "Articles retrieved successfully")
+    }
+
     async showBySlug(c: Context) {
         const slug = c.req.param("slug")
         if (!slug) {

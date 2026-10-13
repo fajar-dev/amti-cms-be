@@ -25,6 +25,8 @@ tags:
     description: File upload & retrieval via MinIO object storage
   - name: FAQ
     description: Frequently Asked Questions management
+  - name: Clients
+    description: Client logo and profile management
   - name: RBAC
     description: Role-Based Access Control and permissions management
   - name: Settings
@@ -33,6 +35,8 @@ tags:
     description: Contact inquiries and message management
   - name: Dashboard
     description: Aggregated metrics, charts data, and activity statistics for admin dashboard
+  - name: Public Website
+    description: Public read-only endpoints consumed by the AMTI website (no authentication)
 
 components:
   securitySchemes:
@@ -276,6 +280,30 @@ components:
         createdAt: { type: string, format: date-time, example: "2026-10-08T08:00:00.000Z" }
         updatedAt: { type: string, format: date-time, example: "2026-10-08T08:00:00.000Z" }
 
+    PublicArticleCard:
+      type: object
+      description: Bentuk ringkas artikel untuk daftar di website publik (tanpa `content`).
+      properties:
+        id: { type: integer, example: 1 }
+        title: { type: string, example: "Structure Health Monitoring System (SHMS)" }
+        slug: { type: string, example: "structure-health-monitoring-system-shms" }
+        description: { type: string, nullable: true, example: "Ringkasan singkat artikel" }
+        cover: { type: string, nullable: true, example: "users/cover.jpg" }
+        coverUrl: { type: string, nullable: true, example: "http://localhost:9000/amti-cms/users/cover.jpg" }
+        tags:
+          type: array
+          items: { type: string }
+          example: ["shms", "monitoring"]
+        category: { allOf: [{ $ref: "#/components/schemas/Category" }], nullable: true }
+        author:
+          type: object
+          nullable: true
+          properties:
+            id: { type: integer, example: 1 }
+            name: { type: string, example: "AMTI Team" }
+        publishedAt: { type: string, format: date-time, nullable: true, example: "2026-10-08T08:00:00.000Z" }
+        createdAt: { type: string, format: date-time, example: "2026-10-08T08:00:00.000Z" }
+
     CreateArticleRequest:
       type: object
       required: [title, content]
@@ -350,6 +378,38 @@ components:
       properties:
         question: { type: string, example: "How do I reset my password?" }
         answer: { type: string, example: "Click on forgot password link on the login screen." }
+        order: { type: integer, example: 1 }
+        isActive: { type: boolean, example: true }
+
+    Client:
+      type: object
+      properties:
+        id: { type: integer, example: 1 }
+        name: { type: string, example: "Astra International" }
+        logo: { type: string, example: "clients/astra.png" }
+        logoUrl: { type: string, example: "http://localhost:9000/amti-bucket/clients/astra.png" }
+        website: { type: string, nullable: true, example: "https://astra.co.id" }
+        order: { type: integer, example: 1 }
+        isActive: { type: boolean, example: true }
+        createdAt: { type: string, format: date-time, example: "2026-10-09T08:00:00.000Z" }
+        updatedAt: { type: string, format: date-time, example: "2026-10-09T08:00:00.000Z" }
+
+    CreateClientRequest:
+      type: object
+      required: [name, logo]
+      properties:
+        name: { type: string, example: "Astra International" }
+        logo: { type: string, example: "clients/astra.png" }
+        website: { type: string, nullable: true, example: "https://astra.co.id" }
+        order: { type: integer, example: 1 }
+        isActive: { type: boolean, example: true }
+
+    UpdateClientRequest:
+      type: object
+      properties:
+        name: { type: string, example: "Astra International" }
+        logo: { type: string, example: "clients/astra.png" }
+        website: { type: string, nullable: true, example: "https://astra.co.id" }
         order: { type: integer, example: 1 }
         isActive: { type: boolean, example: true }
 
@@ -1342,6 +1402,53 @@ paths:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
 
   # ── Content Articles ─────────────────────────────────────────────────────
+  /articles:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [Public Website]
+      summary: Get published articles (public, no authentication)
+      description: |
+        Dipakai halaman `/article` di website publik. Status SELALU dipaksa `publish`
+        di service layer, sehingga draft tidak mungkin bocor walau client mengirim
+        parameter `status`. Field `content` tidak disertakan agar payload daftar ringan;
+        isi lengkap tersedia lewat `GET /content/articles/slug/{slug}`.
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 9 }
+        - name: q
+          in: query
+          description: Search by title or content
+          schema: { type: string }
+        - name: categoryId
+          in: query
+          schema: { type: integer }
+        - name: sortBy
+          in: query
+          description: Column to sort by
+          schema: { type: string, enum: [title, viewsCount, createdAt, publishedAt] }
+        - name: order
+          in: query
+          schema: { type: string, enum: [ASC, DESC], default: DESC }
+      responses:
+        "200":
+          description: Articles retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/PublicArticleCard" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+
   /content/articles:
     parameters:
       - $ref: "#/components/parameters/AcceptLanguage"
@@ -1801,6 +1908,214 @@ paths:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
         "404":
           description: FAQ not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+  # ── Clients ──────────────────────────────────────────────────────────────
+  /clients:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [Public Website, Clients]
+      summary: Get active client logos (Public endpoint)
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 100 }
+        - name: q
+          in: query
+          description: Search client name or website
+          schema: { type: string }
+      responses:
+        "200":
+          description: Public clients retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Client" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+
+  /client:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags: [Clients]
+      summary: Get all clients (paginated)
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: page
+          in: query
+          schema: { type: integer, default: 1 }
+        - name: limit
+          in: query
+          schema: { type: integer, default: 100 }
+        - name: q
+          in: query
+          description: Search by name or website
+          schema: { type: string }
+        - name: isActive
+          in: query
+          description: Filter by active status
+          schema: { type: boolean }
+        - name: sortBy
+          in: query
+          description: Column to sort by
+          schema: { type: string, enum: [order, createdAt, name] }
+        - name: order
+          in: query
+          schema: { type: string, enum: [ASC, DESC], default: ASC }
+      responses:
+        "200":
+          description: Clients retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items: { $ref: "#/components/schemas/Client" }
+                      meta: { $ref: "#/components/schemas/PaginationMeta" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    post:
+      tags: [Clients]
+      summary: Create a new client
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/CreateClientRequest" }
+      responses:
+        "201":
+          description: Client created successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Client" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+
+  /client/{id}:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: id
+        in: path
+        required: true
+        schema: { type: integer }
+    get:
+      tags: [Clients]
+      summary: Get client by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Client retrieved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Client" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+
+    put:
+      tags: [Clients]
+      summary: Update client by ID
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/UpdateClientRequest" }
+      responses:
+        "200":
+          description: Client updated successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data: { $ref: "#/components/schemas/Client" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Client not found
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "422":
+          description: Validation error
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ValidationError" }
+
+    delete:
+      tags: [Clients]
+      summary: Delete client by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Client deleted successfully
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/BaseResponse" }
+        "401":
+          description: Unauthorized
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ErrorResponse" }
+        "404":
+          description: Client not found
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }

@@ -7,6 +7,7 @@ import { CreateUserValidator, UpdateUserValidator } from "../modules/user/valida
 import { CreateCategoryValidator, UpdateCategoryValidator } from "../modules/content/validators/category.validator"
 import { CreateArticleValidator, UpdateArticleValidator, RecordViewValidator } from "../modules/content/validators/article.validator"
 import { CreateFaqValidator, UpdateFaqValidator } from "../modules/faq/validators/faq.validator"
+import { CreateClientValidator, UpdateClientValidator } from "../modules/client/validators/client.validator"
 import { CreateRoleValidator, UpdateRoleValidator } from "../modules/rbac/validators/role.validator"
 import { UpdateSettingValidator, UpdateSettingMetaValidator, UpdateSettingContactValidator, UpdateSettingSocialValidator } from "../modules/setting/validators/setting.validator"
 import { CreateMessageValidator, UpdateMessageStatusValidator } from "../modules/message/validators/message.validator"
@@ -22,6 +23,7 @@ import { authController } from "../modules/auth/auth.module"
 import { userController } from "../modules/user/user.module"
 import { categoryController, articleController } from "../modules/content/content.module"
 import { faqController } from "../modules/faq/faq.module"
+import { clientController } from "../modules/client/client.module"
 import { rbacController } from "../modules/rbac/rbac.module"
 import { settingController } from "../modules/setting/setting.module"
 import { messageController } from "../modules/message/message.module"
@@ -30,7 +32,6 @@ import { storageController } from "../modules/storage/storage.module"
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 const routes = new Hono()
-
 
 // Auth
 routes.post("/auth/register", zValidator("json", RegisterValidator, validationHook), (c) => authController.register(c))
@@ -61,6 +62,9 @@ routes.post("/content/categories", authMiddleware, requirePermission("categories
 routes.put("/content/categories/:id", authMiddleware, requirePermission("categories.update"), zValidator("json", UpdateCategoryValidator, validationHook), (c) => categoryController.update(c))
 routes.delete("/content/categories/:id", authMiddleware, requirePermission("categories.delete"), (c) => categoryController.destroy(c))
 
+// Public Website (tanpa autentikasi) — hanya artikel berstatus publish
+routes.get("/articles", (c) => articleController.publicIndex(c))
+
 // Content - Articles
 routes.get("/content/articles", authMiddleware, requirePermission("articles.view"), (c) => articleController.index(c))
 routes.get("/content/articles/:id", authMiddleware, requirePermission("articles.view"), (c) => articleController.show(c))
@@ -72,11 +76,22 @@ routes.post("/content/articles/:id/view", optionalJsonBody(RecordViewValidator),
 routes.get("/content/articles/:id/views", authMiddleware, requirePermission("articles.view"), (c) => articleController.views(c))
 
 // FAQ
+routes.get("/faqs", (c) => faqController.publicIndex(c))
+routes.get("/faq/public", (c) => faqController.publicIndex(c))
 routes.get("/faq", authMiddleware, requirePermission("faqs.view"), (c) => faqController.index(c))
 routes.get("/faq/:id", authMiddleware, requirePermission("faqs.view"), (c) => faqController.show(c))
 routes.post("/faq", authMiddleware, requirePermission("faqs.create"), zValidator("json", CreateFaqValidator, validationHook), (c) => faqController.store(c))
 routes.put("/faq/:id", authMiddleware, requirePermission("faqs.update"), zValidator("json", UpdateFaqValidator, validationHook), (c) => faqController.update(c))
 routes.delete("/faq/:id", authMiddleware, requirePermission("faqs.delete"), (c) => faqController.destroy(c))
+
+// Clients
+routes.get("/clients", (c) => clientController.publicIndex(c))
+routes.get("/clients/public", (c) => clientController.publicIndex(c))
+routes.get("/client", authMiddleware, requirePermission("clients.view"), (c) => clientController.index(c))
+routes.get("/client/:id", authMiddleware, requirePermission("clients.view"), (c) => clientController.show(c))
+routes.post("/client", authMiddleware, requirePermission("clients.create"), zValidator("json", CreateClientValidator, validationHook), (c) => clientController.store(c))
+routes.put("/client/:id", authMiddleware, requirePermission("clients.update"), zValidator("json", UpdateClientValidator, validationHook), (c) => clientController.update(c))
+routes.delete("/client/:id", authMiddleware, requirePermission("clients.delete"), (c) => clientController.destroy(c))
 
 // RBAC
 routes.get("/rbac/roles", authMiddleware, requirePermission("roles.view"), (c) => rbacController.index(c))

@@ -13,13 +13,7 @@ export class TypeOrmSettingRepository implements ISettingRepository {
     async get(): Promise<Setting> {
         let setting = await this.repository.findOne({ where: {} })
         if (!setting) {
-            setting = this.repository.create({
-                siteName: "AMTI",
-                siteDescription: "AMTI Content Management System",
-                metaKeywords: "amti, cms, content management",
-                author: "AMTI Team",
-                copyright: `© ${new Date().getFullYear()} AMTI. All rights reserved.`,
-            })
+            setting = this.repository.create({})
             setting = await this.repository.save(setting)
         }
         return setting

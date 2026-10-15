@@ -430,6 +430,8 @@ Relasi: `author` (`@ManyToOne` → `User`), `category` (`@ManyToOne` → `Catego
 
 ### settings (`Setting`)
 
+Metadata/branding columns are retained for database compatibility only. The Settings API exposes and updates contact/social fields; website SEO and branding are static in the frontend.
+
 Single-row: hanya ada satu baris konfigurasi website.
 
 | Kolom | Tipe | Nullable | Default | Notes |
@@ -508,3 +510,7 @@ permissions!: Permission[]
 - Tentukan `onDelete` secara eksplisit: `CASCADE` (child selalu ikut parent, mis. `article_views`) atau `SET NULL` (relasi opsional, mis. `articles.category_id`)
 - Tambahkan `@Index()` pada kolom FK yang sering dipakai untuk filter
 - **Tidak** memakai eager loading — relasi dimuat eksplisit via `relations: [...]` atau `leftJoinAndSelect` di repository
+
+### Live chat consistency
+
+The chat session row is locked with `pessimistic_write` before mutation or marking messages read. Session counters and associated messages are committed together. History queries order by `createdAt DESC, id DESC`, take the latest 200 rows, then reverse for chronological presentation. Existing uppercase chat enum values remain compatible with the existing migration and clients; definitions live under the module's `enum/` directory.

@@ -264,14 +264,14 @@ DB_TYPE=mysql bun test
 
 ### File Test yang Ada
 
-Total: **154 test di 11 file**.
+Total: **193 test di 14 file**.
 
 | File | Tests |
 |------|-------|
 | `test/auth.test.ts` | 38 test — register, login, refresh, me, logout, forgot/reset password, profile |
 | `test/user.test.ts` | 22 test — CRUD user, list ringkas, filter, pagination, upload file |
-| `test/content.test.ts` | 16 test — kategori, artikel, slug, SEO, views tracking |
-| `test/setting.test.ts` | 15 test — settings publik, meta/contact/social, RBAC & validasi |
+| `test/content.test.ts` | 22 test — kategori, artikel, slug, SEO, views tracking |
+| `test/setting.test.ts` | 15 test — settings publik, contact/social, static SEO, RBAC & validasi |
 | `test/language.test.ts` | 12 test — deteksi bahasa, message terjemahan, konsistensi kamus |
 | `test/rbac.test.ts` | 12 test — role & permission, enforcement akses |
 | `test/message.test.ts` | 11 test — submit publik, manajemen admin, status baca |
@@ -279,6 +279,9 @@ Total: **154 test di 11 file**.
 | `test/logger.test.ts` | 8 test — structured logger, `requestLogger` middleware |
 | `test/dashboard.test.ts` | 7 test — endpoint statistik & trend |
 | `test/email.test.ts` | 3 test — template email forgot password |
+| `test/client.test.ts` | 12 test — CRUD client |
+| `test/livechat.test.ts` | 14 test — visitor, staff, RBAC, concurrency, history |
+| `test/livechat-service.test.ts` | 7 test — domain rules tanpa database |
 
 ## Production Safety
 

@@ -505,3 +505,8 @@ paths:
         '200':
           description: Deleted
 ```
+
+### Live chat regression checks
+
+`bun test test/livechat-service.test.ts` exercises domain rules without a database.
+`DB_TYPE=mysql bun test test/livechat.test.ts` covers real API permissions, visitor upload authentication, concurrent unread counts, long conversations, closed tickets and query validation against the isolated test database. Service tests do not replace this database suite.

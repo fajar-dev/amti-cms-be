@@ -34,8 +34,6 @@ export const defaultPermissions = [
     // Settings
     { name: "settings.view", module: "Settings", description: "View system settings" },
     { name: "settings.update", module: "Settings", description: "Update system settings" },
-    { name: "settings.meta.view", module: "Settings", description: "View website meta and branding settings" },
-    { name: "settings.meta.update", module: "Settings", description: "Update website meta and branding settings" },
     { name: "settings.contact.view", module: "Settings", description: "View contact information settings" },
     { name: "settings.contact.update", module: "Settings", description: "Update contact information settings" },
     { name: "settings.social.view", module: "Settings", description: "View social media settings" },
@@ -49,6 +47,11 @@ export const defaultPermissions = [
     { name: "clients.create", module: "Clients", description: "Create new client" },
     { name: "clients.update", module: "Clients", description: "Update existing client" },
     { name: "clients.delete", module: "Clients", description: "Delete client" },
+    // Live Chat
+    { name: "livechat.view", module: "Live Chat", description: "View live chat tickets and messages" },
+    { name: "livechat.claim", module: "Live Chat", description: "Claim visitor chat tickets" },
+    { name: "livechat.reply", module: "Live Chat", description: "Reply to visitor chat messages" },
+    { name: "livechat.resolve", module: "Live Chat", description: "Resolve and close chat tickets" },
 ]
 
 export const defaultRoles = [

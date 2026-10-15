@@ -11,11 +11,6 @@ export async function seedSettings(ds: DataSource) {
     let setting = await settingRepo.findOne({ where: {} })
     if (!setting) {
         setting = settingRepo.create({
-            siteName: "AMTI",
-            siteDescription: "AMTI Content Management System",
-            metaKeywords: "amti, cms, content management",
-            author: "AMTI Team",
-            copyright: `© ${new Date().getFullYear()} AMTI. All rights reserved.`,
             phone: "+62 812-8745-6669",
             whatsapp: "+62 812-8745-6669",
             email: "amti.solution@gmail.com",

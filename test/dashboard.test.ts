@@ -4,7 +4,6 @@ import { initTestDatabase, destroyTestDatabase, cleanTestDatabase, createTestApp
 import { AppDataSource } from "../src/config/database"
 import { Category } from "../src/modules/content/entities/category.entity"
 import { Article } from "../src/modules/content/entities/article.entity"
-import { ArticleView } from "../src/modules/content/entities/article-view.entity"
 import { Message } from "../src/modules/message/entities/message.entity"
 import { ArticleStatus } from "../src/modules/content/enum/article-status.enum"
 

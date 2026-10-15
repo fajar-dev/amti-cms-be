@@ -30,13 +30,15 @@ tags:
   - name: RBAC
     description: Role-Based Access Control and permissions management
   - name: Settings
-    description: Website configuration, meta SEO, contact information, and social media links
+    description: Website contact information and social media links
   - name: Messages
     description: Contact inquiries and message management
   - name: Dashboard
     description: Aggregated metrics, charts data, and activity statistics for admin dashboard
   - name: Public Website
     description: Public read-only endpoints consumed by the AMTI website (no authentication)
+  - name: Live Chat
+    description: Real-time customer support live chat ticketing and messaging
 
 components:
   securitySchemes:
@@ -467,18 +469,9 @@ components:
       type: object
       properties:
         id: { type: integer, example: 1 }
-        siteName: { type: string, example: "AMTI" }
-        siteDescription: { type: string, nullable: true, example: "AMTI Content Management System" }
-        metaKeywords: { type: string, nullable: true, example: "amti, cms, content management" }
-        author: { type: string, nullable: true, example: "AMTI Team" }
-        copyright: { type: string, nullable: true, example: "© 2026 AMTI. All rights reserved." }
-        logo: { type: string, nullable: true, example: "users/abc.png" }
-        logoUrl: { type: string, nullable: true, example: "http://localhost:4000/api/proxy?path=users/abc.png" }
-        favicon: { type: string, nullable: true, example: "users/favicon.ico" }
-        faviconUrl: { type: string, nullable: true, example: "http://localhost:4000/api/proxy?path=users/favicon.ico" }
-        ogImage: { type: string, nullable: true, example: "users/og.png" }
-        ogImageUrl: { type: string, nullable: true, example: "http://localhost:4000/api/proxy?path=users/og.png" }
         phone: { type: string, nullable: true, example: "+62 812 3456 7890" }
+        whatsapp: { type: string, nullable: true, example: "+62 812 3456 7890" }
+        mapsUrl: { type: string, nullable: true, example: "https://www.google.com/maps/embed?pb=..." }
         email: { type: string, nullable: true, example: "info@amti.id" }
         address: { type: string, nullable: true, example: "Jakarta, Indonesia" }
         facebook: { type: string, nullable: true, example: "https://facebook.com/amti" }
@@ -493,15 +486,9 @@ components:
     UpdateSettingRequest:
       type: object
       properties:
-        siteName: { type: string, example: "AMTI" }
-        siteDescription: { type: string, nullable: true, example: "AMTI Content Management System" }
-        metaKeywords: { type: string, nullable: true, example: "amti, cms, content management" }
-        author: { type: string, nullable: true, example: "AMTI Team" }
-        copyright: { type: string, nullable: true, example: "© 2026 AMTI. All rights reserved." }
-        logo: { type: string, nullable: true, example: "users/abc.png" }
-        favicon: { type: string, nullable: true, example: "users/favicon.ico" }
-        ogImage: { type: string, nullable: true, example: "users/og.png" }
         phone: { type: string, nullable: true, example: "+62 812 3456 7890" }
+        whatsapp: { type: string, nullable: true, example: "+62 812 3456 7890" }
+        mapsUrl: { type: string, nullable: true, example: "https://www.google.com/maps/embed?pb=..." }
         email: { type: string, nullable: true, example: "info@amti.id" }
         address: { type: string, nullable: true, example: "Jakarta, Indonesia" }
         facebook: { type: string, nullable: true, example: "https://facebook.com/amti" }
@@ -511,23 +498,12 @@ components:
         twitter: { type: string, nullable: true, example: "https://x.com/amti" }
         youtube: { type: string, nullable: true, example: "https://youtube.com/@amti" }
 
-    UpdateSettingMetaRequest:
-      type: object
-      required: [siteName]
-      properties:
-        siteName: { type: string, example: "AMTI" }
-        siteDescription: { type: string, nullable: true, example: "AMTI Content Management System" }
-        metaKeywords: { type: string, nullable: true, example: "amti, cms, content management" }
-        author: { type: string, nullable: true, example: "AMTI Team" }
-        copyright: { type: string, nullable: true, example: "© 2026 AMTI. All rights reserved." }
-        logo: { type: string, nullable: true, example: "users/abc.png" }
-        favicon: { type: string, nullable: true, example: "users/favicon.ico" }
-        ogImage: { type: string, nullable: true, example: "users/og.png" }
-
     UpdateSettingContactRequest:
       type: object
       properties:
         phone: { type: string, nullable: true, example: "+62 812 3456 7890" }
+        whatsapp: { type: string, nullable: true, example: "+62 812 3456 7890" }
+        mapsUrl: { type: string, nullable: true, example: "https://www.google.com/maps/embed?pb=..." }
         email: { type: string, nullable: true, example: "info@amti.id" }
         address: { type: string, nullable: true, example: "Jakarta, Indonesia" }
 
@@ -623,6 +599,216 @@ components:
         recentMessages:
           type: array
           items: { type: object }
+
+    LiveChatSession:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        ticketNumber:
+          type: string
+          example: TICK-20261013-3d8b3c29f3d34cd79898f2a1498ba9f5
+        visitorName:
+          type: string
+          example: Budi Pratama
+        visitorEmail:
+          type: string
+          example: budi@perusahaan.com
+        visitorPhone:
+          type: string
+          example: "081234567890"
+        visitorCompany:
+          type: string
+          example: PT Bangun Bersama
+        status:
+          type: string
+          enum:
+            - WAITING
+            - IN_PROGRESS
+            - RESOLVED
+            - CLOSED
+          example: WAITING
+        assignedToId:
+          type: integer
+          nullable: true
+          example: 1
+        assignedTo:
+          type: object
+          nullable: true
+          properties:
+            id:
+              type: integer
+              example: 1
+            name:
+              type: string
+              example: Admin AMTI
+            email:
+              type: string
+              example: admin@amti.id
+            avatarUrl:
+              type: string
+              nullable: true
+        assignedAt:
+          type: string
+          format: date-time
+          nullable: true
+        lastMessageAt:
+          type: string
+          format: date-time
+        unreadCountUser:
+          type: integer
+          example: 1
+        unreadCountVisitor:
+          type: integer
+          example: 0
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+        sessionToken:
+          type: string
+          description: Included only in visitor responses. Use X-Session-Token for
+            subsequent requests.
+    LiveChatMessage:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        sessionId:
+          type: integer
+          example: 1
+        senderType:
+          type: string
+          enum:
+            - VISITOR
+            - USER
+            - SYSTEM
+          example: VISITOR
+        senderId:
+          type: integer
+          nullable: true
+          example: null
+        senderName:
+          type: string
+          example: Budi Pratama
+        message:
+          type: string
+          nullable: true
+          example: Halo, saya butuh informasi EEWS
+        mediaUrl:
+          type: string
+          nullable: true
+          example: https://minio.amti.id/...
+        mediaType:
+          type: string
+          nullable: true
+          example: image/png
+        mediaName:
+          type: string
+          nullable: true
+          example: diagram.png
+        mediaSize:
+          type: integer
+          nullable: true
+          example: 1048576
+        isRead:
+          type: boolean
+          example: false
+        createdAt:
+          type: string
+          format: date-time
+    StartLiveChatRequest:
+      type: object
+      required:
+        - visitorName
+        - visitorEmail
+        - visitorPhone
+        - visitorCompany
+      properties:
+        visitorName:
+          type: string
+          example: Budi Pratama
+          minLength: 2
+          maxLength: 150
+        visitorEmail:
+          type: string
+          format: email
+          example: budi@perusahaan.com
+          maxLength: 150
+        visitorPhone:
+          type: string
+          example: "081234567890"
+          minLength: 6
+          maxLength: 50
+        visitorCompany:
+          type: string
+          example: PT Bangun Bersama
+          minLength: 2
+          maxLength: 150
+        initialMessage:
+          type: string
+          example: Halo, saya ingin menanyakan implementasi EEWS untuk gedung bertingkat.
+          maxLength: 2000
+        mediaUrl:
+          type: string
+          maxLength: 500
+        mediaType:
+          type: string
+          maxLength: 100
+        mediaName:
+          type: string
+          maxLength: 255
+        mediaSize:
+          type: integer
+          minimum: 1
+    SendLiveChatMessageRequest:
+      type: object
+      properties:
+        message:
+          type: string
+          nullable: true
+          example: Baik pak, kami bisa menjadwalkan konsultasi teknis.
+          maxLength: 2000
+        mediaUrl:
+          type: string
+          nullable: true
+          example: livechat/visitors/abc.pdf
+          maxLength: 500
+        mediaType:
+          type: string
+          nullable: true
+          example: application/pdf
+          maxLength: 100
+        mediaName:
+          type: string
+          nullable: true
+          example: Proposal.pdf
+          maxLength: 255
+        mediaSize:
+          type: integer
+          nullable: true
+          example: 2048000
+          minimum: 1
+      description: Requires nonblank message text or a media attachment.
+    LiveChatStats:
+      type: object
+      properties:
+        waiting:
+          type: integer
+          example: 2
+        inProgress:
+          type: integer
+          example: 1
+        resolved:
+          type: integer
+          example: 15
+        closed:
+          type: integer
+          example: 5
 
 paths:
   # ── Register ──────────────────────────────────────────────────────────────
@@ -2373,7 +2559,7 @@ paths:
     get:
       tags: [Settings]
       summary: Retrieve public website settings
-      description: Returns website meta, contact info, and social media URLs without authentication.
+      description: Returns contact info and social media URLs without authentication.
       responses:
         "200":
           description: Public settings retrieved successfully
@@ -2392,7 +2578,7 @@ paths:
     get:
       tags: [Settings]
       summary: Retrieve all website settings
-      description: Requires `settings.view` permission, or any section view permission (`settings.meta.view`, `settings.contact.view`, `settings.social.view`).
+      description: Requires `settings.view` permission, or any section view permission (`settings.contact.view`, `settings.social.view`).
       security:
         - bearerAuth: []
       responses:
@@ -2443,47 +2629,6 @@ paths:
           content:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
-        "401":
-          description: Unauthorized
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/ErrorResponse" }
-        "403":
-          description: Forbidden
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/ErrorResponse" }
-        "422":
-          description: Validation error
-          content:
-            application/json:
-              schema: { $ref: "#/components/schemas/ValidationError" }
-
-  /settings/meta:
-    parameters:
-      - $ref: "#/components/parameters/AcceptLanguage"
-    put:
-      tags: [Settings]
-      summary: Update website meta and branding settings
-      description: Requires `settings.meta.update` (or `settings.update`) permission.
-      security:
-        - bearerAuth: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema: { $ref: "#/components/schemas/UpdateSettingMetaRequest" }
-      responses:
-        "200":
-          description: Website meta settings updated successfully
-          content:
-            application/json:
-              schema:
-                allOf:
-                  - $ref: "#/components/schemas/BaseResponse"
-                  - type: object
-                    properties:
-                      data: { $ref: "#/components/schemas/Setting" }
         "401":
           description: Unauthorized
           content:
@@ -3015,3 +3160,746 @@ paths:
             application/json:
               schema: { $ref: "#/components/schemas/ErrorResponse" }
 
+  # ── Public Live Chat Endpoints ──────────────────────────────────────────────
+  /public/livechat/start:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    post:
+      tags:
+        - Live Chat
+      summary: Start a visitor live chat session
+      description: Creates a new chat session with ticket number and session token
+        after visitor submits their contact info.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/StartLiveChatRequest"
+      responses:
+        "201":
+          description: Live chat session created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          session:
+                            $ref: "#/components/schemas/LiveChatSession"
+                          message:
+                            $ref: "#/components/schemas/LiveChatMessage"
+                            nullable: true
+        "400":
+          description: Invalid request or closed chat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+  /public/livechat/session:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: X-Session-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Session token returned when starting live chat
+    get:
+      tags:
+        - Live Chat
+      summary: Retrieve current visitor chat session details
+      responses:
+        "200":
+          description: Session details retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LiveChatSession"
+        "400":
+          description: Invalid request or closed chat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat session or ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /public/livechat/messages:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: X-Session-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Session token returned when starting live chat
+    get:
+      tags:
+        - Live Chat
+      summary: Retrieve messages for visitor session
+      responses:
+        "200":
+          description: Messages retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          session:
+                            $ref: "#/components/schemas/LiveChatSession"
+                          messages:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/LiveChatMessage"
+        "400":
+          description: Invalid request or closed chat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat session or ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+      description: Returns the latest 200 messages, ordered chronologically, and marks
+        messages from the other participant as read.
+    post:
+      tags:
+        - Live Chat
+      summary: Send message from visitor to agent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendLiveChatMessageRequest"
+      responses:
+        "201":
+          description: Message sent successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LiveChatMessage"
+        "400":
+          description: Invalid request or closed chat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat session or ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+  /public/livechat/upload:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: X-Session-Token
+        in: header
+        required: true
+        schema:
+          type: string
+        description: Session token returned when starting live chat
+    post:
+      tags:
+        - Live Chat
+      summary: Upload media/document from visitor
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                          url:
+                            type: string
+                          name:
+                            type: string
+                          type:
+                            type: string
+                          size:
+                            type: integer
+        "400":
+          description: Invalid request or closed chat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat session or ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /public/livechat/close:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: X-Session-Token
+        in: header
+        required: true
+        schema:
+          type: string
+    post:
+      tags:
+        - Live Chat
+      summary: Visitor closes active chat session
+      responses:
+        "200":
+          description: Chat session closed successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LiveChatSession"
+        "400":
+          description: Invalid request or closed chat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat session or ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /livechat/tickets:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: page
+        in: query
+        schema:
+          type: integer
+          default: 1
+          minimum: 1
+      - name: limit
+        in: query
+        schema:
+          type: integer
+          default: 20
+          minimum: 1
+          maximum: 100
+      - name: status
+        in: query
+        schema:
+          type: string
+          enum:
+            - WAITING
+            - IN_PROGRESS
+            - RESOLVED
+            - CLOSED
+      - name: q
+        in: query
+        schema:
+          type: string
+      - name: assignedToMe
+        in: query
+        schema:
+          type: string
+          enum:
+            - "true"
+            - "false"
+            - "1"
+            - "0"
+      - name: search
+        in: query
+        schema:
+          type: string
+        description: Alias for q; takes precedence when nonempty.
+      - name: sortBy
+        in: query
+        schema:
+          type: string
+          enum:
+            - id
+            - lastMessageAt
+            - createdAt
+            - status
+            - visitorName
+          default: lastMessageAt
+      - name: order
+        in: query
+        schema:
+          type: string
+          enum:
+            - ASC
+            - DESC
+          default: DESC
+    get:
+      tags:
+        - Live Chat
+      summary: List chat tickets for staff
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Tickets retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/LiveChatSession"
+                      meta:
+                        $ref: "#/components/schemas/PaginationMeta"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: The corresponding livechat action permission is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+  /livechat/tickets/stats:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    get:
+      tags:
+        - Live Chat
+      summary: Get live chat ticket counts by status
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Ticket stats retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LiveChatStats"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: The corresponding livechat action permission is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+  /livechat/tickets/{id}:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Live Chat
+      summary: Get ticket details by ID
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Ticket details retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LiveChatSession"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: The corresponding livechat action permission is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat session or ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+  /livechat/tickets/{id}/messages:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags:
+        - Live Chat
+      summary: Retrieve messages for staff ticket workspace
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Messages retrieved
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          session:
+                            $ref: "#/components/schemas/LiveChatSession"
+                          messages:
+                            type: array
+                            items:
+                              $ref: "#/components/schemas/LiveChatMessage"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: The corresponding livechat action permission is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat session or ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+      description: Returns the latest 200 messages, ordered chronologically, and marks
+        messages from the other participant as read.
+    post:
+      tags:
+        - Live Chat
+      summary: Staff reply to ticket
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SendLiveChatMessageRequest"
+      responses:
+        "201":
+          description: Reply message sent
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LiveChatMessage"
+        "400":
+          description: Invalid request or closed chat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: The corresponding livechat action permission is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat session or ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+  /livechat/tickets/{id}/claim:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Live Chat
+      summary: Staff claim a waiting ticket
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Ticket claimed successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LiveChatSession"
+        "400":
+          description: Invalid request or closed chat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: The corresponding livechat action permission is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat session or ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "409":
+          description: Ticket is already assigned to another agent
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+  /livechat/tickets/{id}/resolve:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: integer
+    post:
+      tags:
+        - Live Chat
+      summary: Staff resolve a chat ticket
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: Ticket resolved successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        $ref: "#/components/schemas/LiveChatSession"
+        "400":
+          description: Invalid request or closed chat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: The corresponding livechat action permission is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "404":
+          description: Chat session or ticket not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "422":
+          description: Validation failed
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ValidationError"
+  /livechat/upload:
+    parameters:
+      - $ref: "#/components/parameters/AcceptLanguage"
+    post:
+      tags:
+        - Live Chat
+      summary: Staff upload media/document to send in chat
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "201":
+          description: File uploaded successfully
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/BaseResponse"
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          path:
+                            type: string
+                          url:
+                            type: string
+                          name:
+                            type: string
+                          type:
+                            type: string
+                          size:
+                            type: integer
+        "400":
+          description: Invalid request or closed chat session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "401":
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+        "403":
+          description: The corresponding livechat action permission is required
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"

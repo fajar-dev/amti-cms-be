@@ -13,6 +13,8 @@ import { Permission } from "../src/modules/rbac/entities/permission.entity"
 import { Setting } from "../src/modules/setting/entities/setting.entity"
 import { Message } from "../src/modules/message/entities/message.entity"
 import { Client } from "../src/modules/client/entities/client.entity"
+import { ChatSession } from "../src/modules/livechat/entities/chat-session.entity"
+import { ChatMessage } from "../src/modules/livechat/entities/chat-message.entity"
 import { ApiResponse } from "../src/core/helpers/response"
 import { BaseException, ValidationException } from "../src/core/exceptions/base"
 import { ZodError } from "zod"
@@ -42,7 +44,7 @@ const TestDataSource = new DataSource({
     database: testDbName,
     synchronize: true,
     dropSchema: true,
-    entities: [User, PasswordResetToken, Category, Article, ArticleView, Faq, Role, Permission, Setting, Message, Client],
+    entities: [User, PasswordResetToken, Category, Article, ArticleView, Faq, Role, Permission, Setting, Message, Client, ChatSession, ChatMessage],
     logging: false,
 })
 
@@ -153,7 +155,13 @@ export async function request(app: Hono, path: string, options: RequestOptions =
     }
 
     const res = await app.request(path, init)
-    const json = await res.json() as any
+    const text = await res.text()
+    let json: any = null
+    try {
+        json = JSON.parse(text)
+    } catch {
+        json = text
+    }
 
     return { status: res.status, body: json, headers: res.headers }
 }

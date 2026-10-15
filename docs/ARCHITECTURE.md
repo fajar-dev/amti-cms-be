@@ -126,7 +126,7 @@ Error ditangani di `src/index.ts` → `app.onError()`:
 | `content` | `src/modules/content/` | Category, Article, dan ArticleView (2 domain, pakai subfolder `controllers/` & `services/`) | ✅ |
 | `faq` | `src/modules/faq/` | CRUD FAQ dengan pagination & search | ✅ |
 | `rbac` | `src/modules/rbac/` | Role, permission, dan relasi many-to-many `role_permissions` | ✅ |
-| `setting` | `src/modules/setting/` | Website settings single-row (meta, contact, social media) | ✅ |
+| `setting` | `src/modules/setting/` | Website settings single-row (contact, social media; SEO static in frontend) | ✅ |
 | `message` | `src/modules/message/` | Pesan kontak masuk: create publik + manajemen admin | ✅ |
 | `dashboard` | `src/modules/dashboard/` | Agregasi statistik & trend untuk admin dashboard — **tanpa entity** (read-only) | ✅ |
 | `storage` | `src/modules/storage/` | Upload file & proxy object storage — **tanpa entity/repository** | ✅ |
@@ -167,3 +167,10 @@ Error ditangani di `src/index.ts` → `app.onError()`:
 | `src/config/config.ts` | Centralized environment config object |
 | `src/config/database.ts` | TypeORM DataSource configuration |
 | `src/config/smtp.ts` | Nodemailer transporter configuration |
+
+### Live chat transaction boundary
+
+`LiveChatController` validates HTTP inputs through route Zod middleware and delegates to `LiveChatService`.
+`IChatSessionRepository.mutate` executes a synchronous domain mutation supplied by the service against a locked session, then persists the session and optional message in one transaction.
+`createWithMessage` atomically creates a session and its initial message. `markRead` uses the same row-lock boundary for unread counters and message read flags.
+The service never receives a TypeORM manager or imports the data source. `TypeOrmChatMessageRepository` is a read-only history repository. DI is wired in `livechat.module.ts`.

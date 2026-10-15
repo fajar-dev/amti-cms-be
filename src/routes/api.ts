@@ -9,8 +9,9 @@ import { CreateArticleValidator, UpdateArticleValidator, RecordViewValidator } f
 import { CreateFaqValidator, UpdateFaqValidator } from "../modules/faq/validators/faq.validator"
 import { CreateClientValidator, UpdateClientValidator } from "../modules/client/validators/client.validator"
 import { CreateRoleValidator, UpdateRoleValidator } from "../modules/rbac/validators/role.validator"
-import { UpdateSettingValidator, UpdateSettingMetaValidator, UpdateSettingContactValidator, UpdateSettingSocialValidator } from "../modules/setting/validators/setting.validator"
+import { UpdateSettingValidator, UpdateSettingContactValidator, UpdateSettingSocialValidator } from "../modules/setting/validators/setting.validator"
 import { CreateMessageValidator, UpdateMessageStatusValidator } from "../modules/message/validators/message.validator"
+import { StartChatValidator, SendMessageValidator, TicketQueryValidator, TicketIdValidator } from "../modules/livechat/validators/livechat.validator"
 
 // ── Middlewares ──────────────────────────────────────────────────────────────
 import { authMiddleware } from "../core/middlewares/auth.middleware"
@@ -29,6 +30,8 @@ import { settingController } from "../modules/setting/setting.module"
 import { messageController } from "../modules/message/message.module"
 import { dashboardController } from "../modules/dashboard/dashboard.module"
 import { storageController } from "../modules/storage/storage.module"
+import { livechatController } from "../modules/livechat/livechat.module"
+
 
 // ── Routes ───────────────────────────────────────────────────────────────────
 const routes = new Hono()
@@ -104,9 +107,8 @@ routes.get("/rbac/permissions", authMiddleware, requirePermission("roles.view", 
 
 // Settings
 routes.get("/settings/public", (c) => settingController.getPublic(c))
-routes.get("/settings", authMiddleware, requirePermission("settings.view", "settings.meta.view", "settings.contact.view", "settings.social.view"), (c) => settingController.show(c))
+routes.get("/settings", authMiddleware, requirePermission("settings.view", "settings.contact.view", "settings.social.view"), (c) => settingController.show(c))
 routes.put("/settings", authMiddleware, requirePermission("settings.update"), zValidator("json", UpdateSettingValidator, validationHook), (c) => settingController.update(c))
-routes.put("/settings/meta", authMiddleware, requirePermission("settings.meta.update", "settings.update"), zValidator("json", UpdateSettingMetaValidator, validationHook), (c) => settingController.updateMeta(c))
 routes.put("/settings/contact", authMiddleware, requirePermission("settings.contact.update", "settings.update"), zValidator("json", UpdateSettingContactValidator, validationHook), (c) => settingController.updateContact(c))
 routes.put("/settings/social", authMiddleware, requirePermission("settings.social.update", "settings.update"), zValidator("json", UpdateSettingSocialValidator, validationHook), (c) => settingController.updateSocial(c))
 
@@ -129,5 +131,23 @@ routes.get("/dashboard/recent-messages", authMiddleware, (c) => dashboardControl
 // Storage
 routes.post("/upload", authMiddleware, (c) => storageController.upload(c))
 routes.get("/proxy", (c) => storageController.proxy(c))
+
+// Live Chat - Public (Visitor)
+routes.post("/public/livechat/start", zValidator("json", StartChatValidator, validationHook), (c) => livechatController.start(c))
+routes.get("/public/livechat/session", (c) => livechatController.getSession(c))
+routes.get("/public/livechat/messages", (c) => livechatController.getVisitorMessages(c))
+routes.post("/public/livechat/messages", zValidator("json", SendMessageValidator, validationHook), (c) => livechatController.visitorSendMessage(c))
+routes.post("/public/livechat/upload", (c) => livechatController.visitorUploadMedia(c))
+routes.post("/public/livechat/close", (c) => livechatController.visitorClose(c))
+
+// Live Chat - CMS (Staff / Admin)
+routes.get("/livechat/tickets", authMiddleware, requirePermission("livechat.view"), zValidator("query", TicketQueryValidator, validationHook), (c) => livechatController.getTickets(c))
+routes.get("/livechat/tickets/stats", authMiddleware, requirePermission("livechat.view"), (c) => livechatController.getStats(c))
+routes.get("/livechat/tickets/:id", authMiddleware, requirePermission("livechat.view"), zValidator("param", TicketIdValidator, validationHook), (c) => livechatController.getTicketDetail(c))
+routes.get("/livechat/tickets/:id/messages", authMiddleware, requirePermission("livechat.view"), zValidator("param", TicketIdValidator, validationHook), (c) => livechatController.getStaffMessages(c))
+routes.post("/livechat/tickets/:id/claim", authMiddleware, requirePermission("livechat.claim"), zValidator("param", TicketIdValidator, validationHook), (c) => livechatController.claimTicket(c))
+routes.post("/livechat/tickets/:id/messages", authMiddleware, requirePermission("livechat.reply"), zValidator("param", TicketIdValidator, validationHook), zValidator("json", SendMessageValidator, validationHook), (c) => livechatController.staffSendMessage(c))
+routes.post("/livechat/tickets/:id/resolve", authMiddleware, requirePermission("livechat.resolve"), zValidator("param", TicketIdValidator, validationHook), (c) => livechatController.resolveTicket(c))
+routes.post("/livechat/upload", authMiddleware, requirePermission("livechat.reply"), (c) => livechatController.staffUploadMedia(c))
 
 export default routes

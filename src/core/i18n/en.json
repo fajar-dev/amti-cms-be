@@ -93,5 +93,26 @@
         "Title is too long": "Title is too long",
         "Content is required": "Content is required",
         "Slug is required": "Slug is required"
+    },
+    "livechat": {
+        "Chat ticket is already assigned": "Chat ticket is already assigned",
+        "Chat session not found": "Chat session not found",
+        "Chat ticket not found": "Chat ticket not found",
+        "This chat session has ended. Please start a new chat.": "This chat session has ended. Please start a new chat.",
+        "Session token is required": "Session token is required",
+        "Chat started successfully": "Chat started successfully",
+        "Session retrieved successfully": "Session retrieved successfully",
+        "Messages retrieved successfully": "Messages retrieved successfully",
+        "Message sent successfully": "Message sent successfully",
+        "Chat closed successfully": "Chat closed successfully",
+        "Tickets retrieved successfully": "Tickets retrieved successfully",
+        "Ticket stats retrieved successfully": "Ticket stats retrieved successfully",
+        "Ticket retrieved successfully": "Ticket retrieved successfully",
+        "Ticket claimed successfully": "Ticket claimed successfully",
+        "Ticket resolved successfully": "Ticket resolved successfully",
+        "Name must be at least 2 characters": "Name must be at least 2 characters",
+        "Phone number must be at least 6 characters": "Phone number must be at least 6 characters",
+        "Company name must be at least 2 characters": "Company name must be at least 2 characters",
+        "Either message or media attachment is required": "Either message or media attachment is required"
     }
 }

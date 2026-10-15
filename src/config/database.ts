@@ -11,6 +11,8 @@ import { Permission } from "../modules/rbac/entities/permission.entity"
 import { Setting } from "../modules/setting/entities/setting.entity"
 import { Message } from "../modules/message/entities/message.entity"
 import { Client } from "../modules/client/entities/client.entity"
+import { ChatSession } from "../modules/livechat/entities/chat-session.entity"
+import { ChatMessage } from "../modules/livechat/entities/chat-message.entity"
 import { config } from "./config"
 
 /**
@@ -28,7 +30,7 @@ const defaultDataSource = new DataSource({
     password: config.database.pass,
     database: config.database.name,
     synchronize: config.database.sync,
-    entities: [User, PasswordResetToken, Category, Article, ArticleView, Faq, Role, Permission, Setting, Message, Client],
+    entities: [User, PasswordResetToken, Category, Article, ArticleView, Faq, Role, Permission, Setting, Message, Client, ChatSession, ChatMessage],
     migrations: [__dirname + "/../database/migrations/*{.ts,.js}"],
     subscribers: [],
 })

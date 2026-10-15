@@ -1,4 +1,3 @@
-import { EntityManager } from "typeorm"
 import { User } from "../entities/user.entity"
 import { IBaseRepository, SortOrder } from "../../../core/interfaces/base.repository.interface"
 

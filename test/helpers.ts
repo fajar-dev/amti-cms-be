@@ -99,3 +99,13 @@ export function resetCounters() {
     articleCounter = 0
     roleCounter = 0
 }
+
+export function createChatData(overrides: Record<string, unknown> = {}) {
+    return {
+        visitorName: "Chat Visitor",
+        visitorEmail: "visitor@example.com",
+        visitorPhone: "081234567890",
+        visitorCompany: "Test Company",
+        ...overrides
+    }
+}

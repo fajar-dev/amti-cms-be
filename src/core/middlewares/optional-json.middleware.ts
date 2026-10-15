@@ -10,7 +10,7 @@ import { z } from "zod"
  * `POST /content/articles/:id/view` (endpoint beacon publik yang sering dipanggil
  * tanpa body). Controller tetap membaca hasilnya lewat `c.req.valid("json")`.
  */
-export const optionalJsonBody = <T extends z.ZodTypeAny>(schema: T) => {
+export const optionalJsonBody = <T extends z.ZodType<Record<string, unknown>>>(schema: T) => {
     return async (c: Context, next: Next) => {
         const raw = await c.req.json().catch(() => ({}))
         const parsed = schema.safeParse(raw)

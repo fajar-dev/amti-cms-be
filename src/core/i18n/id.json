@@ -14,7 +14,6 @@
         "Conflict": "Data sudah ada",
         "Too Many Requests": "Terlalu banyak permintaan"
     },
-
     "auth": {
         "User registered successfully": "Registrasi berhasil",
         "Logged in successfully": "Berhasil masuk",
@@ -40,7 +39,6 @@
         "Missing or invalid authorization header": "Header otorisasi tidak ada atau tidak valid",
         "Missing or invalid API key": "API key tidak ada atau tidak valid"
     },
-
     "user": {
         "User created successfully": "Pengguna berhasil dibuat",
         "User updated successfully": "Pengguna berhasil diperbarui",
@@ -49,7 +47,6 @@
         "Users retrieved successfully": "Daftar pengguna berhasil diambil",
         "User not found": "Pengguna tidak ditemukan"
     },
-
     "content": {
         "Category created successfully": "Kategori berhasil dibuat",
         "Category updated successfully": "Kategori berhasil diperbarui",
@@ -68,7 +65,6 @@
         "View recorded successfully": "Kunjungan berhasil dicatat",
         "Views retrieved successfully": "Daftar kunjungan berhasil diambil"
     },
-
     "rbac": {
         "Roles retrieved successfully": "Peran berhasil diambil",
         "Roles list retrieved successfully": "Daftar peran berhasil diambil",
@@ -84,7 +80,6 @@
         "Permissions retrieved successfully": "Hak akses berhasil diambil",
         "You do not have permission to perform this action": "Anda tidak memiliki izin untuk melakukan tindakan ini"
     },
-
     "validation": {
         "Name is required": "Nama wajib diisi",
         "Invalid email format": "Format email tidak valid",
@@ -98,5 +93,26 @@
         "Title is too long": "Judul terlalu panjang",
         "Content is required": "Konten wajib diisi",
         "Slug is required": "Slug wajib diisi"
+    },
+    "livechat": {
+        "Chat ticket is already assigned": "Tiket percakapan sudah ditugaskan",
+        "Chat session not found": "Sesi percakapan tidak ditemukan",
+        "Chat ticket not found": "Tiket percakapan tidak ditemukan",
+        "This chat session has ended. Please start a new chat.": "Sesi percakapan ini telah berakhir. Silakan mulai percakapan baru.",
+        "Session token is required": "Token sesi wajib diisi",
+        "Chat started successfully": "Percakapan berhasil dimulai",
+        "Session retrieved successfully": "Sesi berhasil diambil",
+        "Messages retrieved successfully": "Pesan berhasil diambil",
+        "Message sent successfully": "Pesan berhasil dikirim",
+        "Chat closed successfully": "Percakapan berhasil ditutup",
+        "Tickets retrieved successfully": "Tiket berhasil diambil",
+        "Ticket stats retrieved successfully": "Statistik tiket berhasil diambil",
+        "Ticket retrieved successfully": "Tiket berhasil diambil",
+        "Ticket claimed successfully": "Tiket berhasil diambil alih",
+        "Ticket resolved successfully": "Tiket berhasil diselesaikan",
+        "Name must be at least 2 characters": "Nama minimal 2 karakter",
+        "Phone number must be at least 6 characters": "Nomor telepon minimal 6 karakter",
+        "Company name must be at least 2 characters": "Nama perusahaan minimal 2 karakter",
+        "Either message or media attachment is required": "Pesan atau lampiran wajib diisi"
     }
 }

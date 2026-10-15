@@ -1,5 +1,19 @@
 # 📝 Changelog
 
+## 2026-10-14 — Static website SEO
+
+- Breaking API change: remove PUT /settings/meta and settings.meta permissions from the seed catalog. Settings responses and updates now contain only contact/social fields; legacy metadata inputs are stripped. Existing database columns are retained to avoid data loss, but are no longer exposed or editable.
+
+## 2026-10-13 — Live chat architecture and regression audit
+
+- Remove compiler-confirmed unused imports in auth, content, user and dashboard tests.
+- Separate chat enums, TypeORM repository implementations and module composition root. Preserve existing uppercase database/API enum values to avoid an unrequested data migration.
+- Store session mutations and their messages atomically in repository transactions with row locking; make repeat claim/resolve/close idempotent and reject competing claims or writes to closed sessions.
+- Validate visitor sessions before uploads; enforce action-specific staff permissions and validated ticket pagination/IDs.
+- Return the latest 200 messages in chronological order; serialize the assigned user's photo correctly.
+- Add live-chat message translations and regression tests (service and database E2E).
+- Constrain the optional JSON middleware schema to object output, preserving its existing fallback behavior.
+
 Semua perubahan penting pada proyek ini akan didokumentasikan di file ini.
 
 Format mengikuti [Keep a Changelog](https://keepachangelog.com/en/1.0.0/).

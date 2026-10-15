@@ -11,7 +11,7 @@ export class Setting {
     @PrimaryGeneratedColumn()
     id!: number
 
-    // ── Website Meta ────────────────────────────────────────────────────────────
+    // Legacy columns retained for database compatibility; not exposed or editable by Settings.
     @Column({ type: "varchar", length: 255, name: "site_name", default: "AMTI" })
     siteName!: string
 

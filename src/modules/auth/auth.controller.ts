@@ -2,7 +2,6 @@ import { Context } from "hono"
 import { AuthService } from "./auth.service"
 import { ApiResponse } from "../../core/helpers/response"
 import { AuthSerializer } from "./serializers/auth.serialize"
-import { BadRequestException } from "../../core/exceptions/base"
 
 export class AuthController {
     constructor(private readonly service: AuthService) {}

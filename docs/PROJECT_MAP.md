@@ -505,3 +505,13 @@ src/core/middlewares/auth.middleware.ts
 | `seed:rbac` | `bun run src/database/seeders/rbac.seeder.ts` | Seeder permissions & roles |
 | `seed:users` | `bun run src/database/seeders/user.seeder.ts` | Seeder user default |
 | `seed:settings` | `bun run src/database/seeders/setting.seeder.ts` | Seeder settings default |
+
+### Live chat module
+
+- `src/modules/livechat/enum/`: persisted sender and ticket status definitions.
+- `src/modules/livechat/entities/`: session/message entities.
+- `src/modules/livechat/interfaces/`: session transaction contract and read-only message history contract.
+- `src/modules/livechat/repositories/`: TypeORM implementations; session locking and atomic writes.
+- `src/modules/livechat/livechat.module.ts`: composition root exporting the controller.
+- `test/livechat.test.ts`: database-backed API regression coverage.
+- `test/livechat-service.test.ts`: isolated domain-rule regression coverage.
